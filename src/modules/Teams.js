@@ -58,6 +58,17 @@ export const renderTeams = async (container) => {
             </form>
         </div>
     </div>
+  
+    <!-- Modal Roster (Ver jugadores) -->
+    <div id="teamRosterModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/80 backdrop-blur-sm">
+        <div class="w-full max-w-md card p-6" id="teamRosterContainer">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold">Plantilla</h3>
+                <button id="closeRosterModal" class="text-slate-400">&times;</button>
+            </div>
+            <div id="teamRosterContent" class="space-y-2 text-sm text-slate-400">Cargando...</div>
+        </div>
+    </div>
   `
 
   const listContainer = document.getElementById('teamList')
@@ -85,11 +96,12 @@ export const renderTeams = async (container) => {
     } else {
         listContainer.innerHTML = teams.map(t => `
             <div class="card p-4 flex flex-col items-center glass-hover">
-                <div class="w-16 h-16 bg-slate-700 rounded-2xl flex items-center justify-center mb-4 border border-slate-600">
-                    ${t.escudo_url ? `<img src="${t.escudo_url}" class="w-12 h-12 object-contain">` : `<svg class="w-8 h-8 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.5 1.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" clip-rule="evenodd"></path></svg>`}
+                <div class="w-16 h-16 bg-slate-700 rounded-2xl flex items-center justify-center mb-4 border border-slate-600 overflow-hidden">
+                    ${t.escudo_url ? `<img src="${t.escudo_url}" class="w-12 h-12 object-contain" loading="lazy">` : `<svg class="w-8 h-8 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.5 1.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" clip-rule="evenodd"></path></svg>`}
                 </div>
                 <h4 class="font-bold text-center mb-1 leading-tight">${t.nombre}</h4>
                 <p class="text-[10px] text-indigo-400 font-bold uppercase truncate max-w-full">${t.torneos?.nombre || 'Sin Torneo'}</p>
+                <button class="btn-view-players mt-3 btn-primary text-xs" data-team-id="${t.id}">Ver jugadores</button>
             </div>
         `).join('')
     }
@@ -121,5 +133,38 @@ export const renderTeams = async (container) => {
     }
   }
 
-  loadData()
+    // Abrir modal de plantilla desde botones (se generan dinámicamente)
+    const openRosterModal = (htmlContent) => {
+        document.getElementById('teamRosterContent').innerHTML = htmlContent
+        document.getElementById('teamRosterModal').classList.remove('hidden')
+    }
+
+    document.getElementById('closeRosterModal').onclick = () => document.getElementById('teamRosterModal').classList.add('hidden')
+
+    // Delegación: capturamos clicks en el contenedor para los botones creados dinámicamente
+    document.getElementById('teamList').addEventListener('click', async (e) => {
+        const btn = e.target.closest('.btn-view-players')
+        if (!btn) return
+        const teamId = btn.dataset.teamId
+        if (!teamId) return
+        openRosterModal('Cargando plantilla...')
+        try {
+            const { data: players, error } = await supabase.from('jugadores').select('*').eq('equipo_id', teamId).is('deleted_at', null)
+            if (error) throw error
+            if (!players || players.length === 0) return openRosterModal('<p class="text-center py-6">No hay jugadores registrados.</p>')
+            openRosterModal(players.map(p => `
+                <div class="flex items-center gap-3 p-2 border-b border-slate-800/20">
+                    <img src="${p.foto_url || ('https://ui-avatars.com/api/?name='+encodeURIComponent(p.nombre))}" class="w-10 h-10 rounded-md object-cover" loading="lazy">
+                    <div>
+                        <div class="font-black text-white">${p.nombre}</div>
+                        <div class="text-[11px] text-slate-400">#${p.dorsal || '-'} • ${p.posicion || '-'}</div>
+                    </div>
+                </div>
+            `).join(''))
+        } catch (err) {
+            openRosterModal(`<p class="text-red-500">${err.message}</p>`)
+        }
+    })
+
+    loadData()
 }

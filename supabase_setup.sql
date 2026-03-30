@@ -170,3 +170,58 @@ CREATE POLICY "Admin gestiona cuadro honor" ON cuadro_honor FOR ALL USING (
     auth.uid() IN (SELECT user_id FROM torneos WHERE id = torneo_id)
 );
 
+-- ==========================
+-- POLÍTICAS RLS RECOMENDADAS
+-- Permitir a usuarios autenticados crear/editar sus propios recursos
+-- ==========================
+
+-- Torneos: el owner (user_id) puede gestionar todo
+CREATE POLICY "Owners manage torneos" ON torneos
+  FOR ALL
+  TO authenticated
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+-- Equipos: el owner (user_id) puede gestionar equipos
+CREATE POLICY "Owners manage equipos" ON equipos
+  FOR ALL
+  TO authenticated
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+-- Partidos: el owner (user_id) puede gestionar partidos
+CREATE POLICY "Owners manage partidos" ON partidos
+  FOR ALL
+  TO authenticated
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+-- Tabla de posiciones: owner puede gestionar
+CREATE POLICY "Owners manage tabla_posiciones" ON tabla_posiciones
+  FOR ALL
+  TO authenticated
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+-- Sedes y árbitros: owner puede gestionar
+CREATE POLICY "Owners manage sedes" ON sedes
+  FOR ALL
+  TO authenticated
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "Owners manage arbitros" ON arbitros
+  FOR ALL
+  TO authenticated
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+-- Jugadores: permitimos gestionar jugadores si el usuario es dueño del torneo asociado
+CREATE POLICY "Tournament owners manage jugadores" ON jugadores
+  FOR ALL
+  TO authenticated
+  USING (auth.uid() IN (SELECT user_id FROM torneos WHERE id = torneo_id))
+  WITH CHECK (auth.uid() IN (SELECT user_id FROM torneos WHERE id = torneo_id));
+
+-- NOTA: Ajusta/añade políticas adicionales según los roles de tu aplicación (admins, staff, etc.)
+

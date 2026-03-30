@@ -2,25 +2,10 @@ import { supabase } from '../services/supabase.js'
 
 export const renderStandings = async (container, torneoId) => {
   container.innerHTML = `
-    <div class="card overflow-hidden">
-        <table class="w-full text-left text-sm">
-            <thead class="bg-slate-800/50 text-slate-400 uppercase text-[10px] font-black">
-                <tr>
-                    <th class="px-4 py-3">Pos</th>
-                    <th class="px-4 py-3">Equipo</th>
-                    <th class="px-4 py-3 text-center">PJ</th>
-                    <th class="px-4 py-3 text-center">PG</th>
-                    <th class="px-4 py-3 text-center">PE</th>
-                    <th class="px-4 py-3 text-center">PP</th>
-                    <th class="px-4 py-3 text-center">GF</th>
-                    <th class="px-4 py-3 text-center">GC</th>
-                    <th class="px-4 py-3 text-center text-indigo-400">PTS</th>
-                </tr>
-            </thead>
-            <tbody id="standingsBody">
-                <!-- Data dinámica -->
-            </tbody>
-        </table>
+    <div class="card overflow-hidden p-4">
+        <div id="standingsBody" class="space-y-3">
+            <!-- Data dinámica -->
+        </div>
     </div>
   `
 
@@ -39,21 +24,20 @@ export const renderStandings = async (container, torneoId) => {
     if (error) return console.error(error)
 
     body.innerHTML = data.map((row, index) => `
-        <tr class="border-t border-slate-700/50 hover:bg-slate-800/30 transition-colors">
-            <td class="px-4 py-4 font-bold text-slate-500">${index + 1}</td>
-            <td class="px-4 py-4">
-                <div class="flex items-center gap-3">
-                    <span class="font-bold text-white">${row.equipos.nombre}</span>
+        <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-md overflow-hidden bg-slate-800 flex items-center justify-center">
+                    <img src="${row.equipos?.escudo_url || ('https://ui-avatars.com/api/?name='+encodeURIComponent(row.equipos?.nombre))}" class="w-full h-full object-contain" loading="lazy">
                 </div>
-            </td>
-            <td class="px-4 py-4 text-center font-medium">${row.pj}</td>
-            <td class="px-4 py-4 text-center text-emerald-500">${row.pg}</td>
-            <td class="px-4 py-4 text-center text-slate-400">${row.pe}</td>
-            <td class="px-4 py-4 text-center text-red-400">${row.pp}</td>
-            <td class="px-4 py-4 text-center">${row.gf}</td>
-            <td class="px-4 py-4 text-center">${row.gc}</td>
-            <td class="px-4 py-4 text-center font-black text-indigo-400 text-lg">${row.pts}</td>
-        </tr>
+                <div>
+                    <div class="font-black text-white">${index + 1}. ${row.equipos?.nombre}</div>
+                    <div class="text-[11px] text-slate-400">PJ ${row.pj} • DG ${row.dg}</div>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="text-indigo-400 font-black text-lg">${row.pts}</div>
+            </div>
+        </div>
     `).join('')
   }
 
