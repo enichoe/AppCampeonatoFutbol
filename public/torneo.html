@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Tournament Stats | Liga Pro SaaS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body { background-color: #020617; font-family: 'Inter', sans-serif; color: #f8fafc; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .stat-header { font-size: 9px; font-weight: 900; letter-spacing: 0.1em; color: #64748b; text-transform: uppercase; }
+        @keyframes fadein { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadein 0.5s ease-out forwards; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <header class="py-12 text-center border-b border-white/5 glass sticky top-0 z-50">
+        <h1 id="tournamentName" class="text-4xl md:text-5xl font-black tracking-tighter text-white">Conectando...</h1>
+        <div id="statusBadge" class="mt-4 inline-block px-4 py-1.5 rounded-full bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] border border-indigo-500/20">LIVE SYNC ON</div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-12 space-y-24" id="publicView">
+        <!-- Loader inicial -->
+        <div class="flex flex-col items-center justify-center py-40 gap-6">
+            <div class="w-12 h-12 border-t-2 border-indigo-500 border-solid rounded-full animate-spin"></div>
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Sincronizando con el servidor oficial...</p>
+        </div>
+    </main>
+
+    <script type="module">
+        const supabaseUrl = 'https://qdeztwjaodrdbijuqaoi.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZXp0d2phb2RyZGJpanVxYW9pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1NzU4NzMsImV4cCI6MjA5MDE1MTg3M30.W8Kx9qldNHEluTMwka5z-RgRoRUhFFpYawi2yKXPQVA';
+        const client = supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+        const slug = new URLSearchParams(window.location.search).get('slug');
+
+        async function init() {
+            if (!slug) return document.getElementById('publicView').innerHTML = '<p class="text-center font-bold text-red-500">ERROR: NO SLUG PROVIDED</p>';
+            const { data: torneo, error } = await client.from('torneos').select('*').eq('slug', slug).single();
+            if (error || !torneo) return document.getElementById('publicView').innerHTML = '<p class="text-center font-bold text-red-500 text-3xl">404: TORNEO NO ENCONTRADO</p>';
+
+            document.getElementById('tournamentName').innerText = torneo.nombre;
+            renderAll(torneo.id);
+
+            client.channel('live-updates').on('postgres_changes', { event: '*', schema: 'public' }, () => {
+                renderAll(torneo.id);
+            }).subscribe();
+        }
+
+        async function renderAll(tId) {
+            const { data: grupos } = await client.from('grupos').select('*').eq('torneo_id', tId);
+            const view = document.getElementById('publicView');
+            let html = '';
+
+            for (const g of grupos) {
+                const { data: table } = await client.from('tabla_posiciones').select('*, equipos(nombre)').eq('grupo_id', g.id).order('pts', { ascending: false }).order('dg', { ascending: false });
+                const { data: matches } = await client.from('partidos').select('*, h:equipo_local_id(nombre), a:equipo_visitante_id(nombre)').eq('grupo_id', g.id).order('jornada', { ascending: true });
+
+                html += `
+                    <section class="fade-in space-y-10">
+                        <div class="flex items-center gap-6">
+                            <h2 class="text-4xl font-black text-white italic uppercase tracking-tighter">${g.nombre}</h2>
+                            <div class="h-px grow bg-white/5"></div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 xl:grid-cols-12 gap-10">
+                            <!-- TABLA PROFESIONAL -->
+                            <div class="xl:col-span-12 glass p-8 rounded-[2.5rem] shadow-2xl overflow-x-auto">
+                                <table class="w-full text-[10px] md:text-sm">
+                                    <thead class="border-b border-white/5">
+                                        <tr>
+                                            <th class="px-4 py-5 text-left stat-header">Selección / Equipo</th>
+                                            <th class="px-2 py-5 stat-header">PJ</th>
+                                            <th class="px-2 py-5 stat-header text-emerald-400">G</th>
+                                            <th class="px-2 py-5 stat-header">E</th>
+                                            <th class="px-2 py-5 stat-header text-red-400">P</th>
+                                            <th class="px-2 py-5 stat-header">GF</th>
+                                            <th class="px-2 py-5 stat-header">GC</th>
+                                            <th class="px-2 py-5 stat-header">DG</th>
+                                            <th class="px-4 py-5 stat-header text-indigo-400">PTS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-white/5">
+                                        ${table.map((r, i) => `
+                                            <tr class="hover:bg-white/5 transition-all">
+                                                <td class="px-4 py-6 font-black text-white flex items-center gap-4">
+                                                    <span class="text-slate-700 italic">${i+1}</span>
+                                                    ${r.equipos.nombre}
+                                                </td>
+                                                <td class="px-2 py-6 text-center text-slate-400 font-bold">${r.pj}</td>
+                                                <td class="px-2 py-6 text-center text-emerald-400 font-black">${r.pg}</td>
+                                                <td class="px-2 py-6 text-center text-slate-400 font-bold">${r.pe}</td>
+                                                <td class="px-2 py-6 text-center text-red-400 font-black">${r.pp}</td>
+                                                <td class="px-2 py-6 text-center text-slate-500">${r.gf}</td>
+                                                <td class="px-2 py-6 text-center text-slate-500">${r.gc}</td>
+                                                <td class="px-2 py-6 text-center font-black ${r.dg >= 0 ? 'text-indigo-300' : 'text-orange-400'}">${r.dg}</td>
+                                                <td class="px-4 py-6 text-center font-black text-indigo-500 text-2xl">${r.pts}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- FIXTURE -->
+                            <div class="xl:col-span-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                ${matches.map(m => `
+                                    <div class="glass p-6 rounded-3xl flex flex-col items-center gap-4 border border-white/5 hover:border-indigo-500/30 transition-all">
+                                        <div class="flex items-center justify-between w-full">
+                                            <span class="text-[10px] font-black text-slate-500 uppercase">Jornada ${m.jornada || 1}</span>
+                                            <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">${m.estado}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between w-full h-12">
+                                            <div class="w-2/5 text-right text-xs font-black truncate">${m.h.nombre}</div>
+                                            <div class="flex items-center gap-3 bg-black/40 px-3 py-1 rounded-xl">
+                                                <span class="text-xl font-black text-white">${m.goles_local}</span>
+                                                <span class="text-[8px] text-slate-700">-</span>
+                                                <span class="text-xl font-black text-white">${m.goles_visitante}</span>
+                                            </div>
+                                            <div class="w-2/5 text-left text-xs font-black truncate">${m.a.nombre}</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </section>
+                `;
+            }
+            view.innerHTML = html;
+        }
+
+        init();
+    </script>
+</body>
+</html>

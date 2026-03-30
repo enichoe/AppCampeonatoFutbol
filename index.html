@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liga Pro SaaS | Gestiona tu Torneo</title>
+    <meta name="description" content="La plataforma líder para gestión de torneos de fútbol en tiempo real.">
+    <link rel="stylesheet" href="/src/style.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-900 text-slate-100 font-inter min-h-screen">
+    
+    <!-- Contenedor Principal (SPA) -->
+    <div id="app" class="flex flex-col min-h-screen">
+        <!-- Renderizado dinámico aquí -->
+        <div id="loader" class="fixed inset-0 flex items-center justify-center bg-slate-900 z-50">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
