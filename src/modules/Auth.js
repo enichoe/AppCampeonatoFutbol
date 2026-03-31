@@ -2,26 +2,66 @@ import { supabase } from '../services/supabase.js'
 
 export const renderAuth = (container) => {
   container.innerHTML = `
-    <div class="flex-grow flex items-center justify-center p-6 bg-slate-900 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-900 via-slate-900 to-indigo-950/20">
-      <div class="card w-full max-w-md fade-in">
-        <div class="flex flex-col items-center mb-10">
-          <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-xl shadow-indigo-600/30">
-            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-            </svg>
+    <div class="min-h-screen flex flex-col bg-slate-900 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-900 via-slate-900 to-indigo-950/20">
+      <div class="flex-grow flex items-center justify-center p-6">
+        <div class="card w-full max-w-md fade-in">
+          <div class="flex flex-col items-center mb-10">
+            <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-xl shadow-indigo-600/30">
+              <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+            </div>
+            <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 font-black italic uppercase tracking-tighter">SportSaaS Pro</h1>
+            <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-2">Gestiona tus torneos como un profesional</p>
           </div>
-          <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">Liga Pro SaaS</h1>
-          <p class="text-slate-500 text-sm mt-2">Gestiona tus torneos como un profesional</p>
-        </div>
 
-        <div id="authContent">
-          <!-- Renderizado dinámico entre Login y Registro -->
-        </div>
+          <div id="authContent">
+            <!-- Renderizado dinámico entre Login y Registro -->
+          </div>
 
-        <div id="authFooter" class="mt-8 text-center text-sm text-slate-500">
-           <!-- Links de cambio de modo -->
+          <div id="authFooter" class="mt-8 text-center text-sm text-slate-500">
+             <!-- Links de cambio de modo -->
+          </div>
         </div>
       </div>
+
+      <!-- SALES FOOTER (SaaS CTA) -->
+      <footer class="border-t border-white/5 bg-slate-950/50 backdrop-blur-3xl pt-16 pb-10 px-6 overflow-hidden relative">
+          <div class="max-w-4xl mx-auto relative z-10 text-center">
+              <div class="mb-12">
+                  <h3 class="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-400 mb-4 italic">¿Organizas un Campeonato?</h3>
+                  <h2 class="text-3xl md:text-3xl font-black italic uppercase tracking-tighter text-white mb-6 font-black italic uppercase tracking-tighter">Lleva tu liga al <span class="text-indigo-400 italic">Siguiente Nivel</span></h2>
+                  <p class="text-xs font-bold text-slate-500 uppercase tracking-widest max-w-lg mx-auto leading-relaxed">
+                      Digitaliza tu torneo con la tecnología de <span class="text-white italic">SportSaaS Pro</span>. Resultados en vivo, tablas automáticas y gestión profesional.
+                  </p>
+              </div>
+
+              <!-- FEATURES MINI GRID -->
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 opacity-60">
+                  <div class="flex flex-col gap-2">
+                      <span class="text-lg">⚡</span>
+                      <span class="text-[9px] font-black uppercase tracking-widest text-white">Fixture Instantáneo</span>
+                  </div>
+                  <div class="flex flex-col gap-2">
+                      <span class="text-lg">📊</span>
+                      <span class="text-[9px] font-black uppercase tracking-widest text-white">Tablas Automatizadas</span>
+                  </div>
+                  <div class="flex flex-col gap-2">
+                      <span class="text-lg">📱</span>
+                      <span class="text-[9px] font-black uppercase tracking-widest text-white">Mobile First UI</span>
+                  </div>
+                  <div class="flex flex-col gap-2">
+                      <span class="text-lg">📢</span>
+                      <span class="text-[9px] font-black uppercase tracking-widest text-white">Share Público</span>
+                  </div>
+              </div>
+
+              <div class="h-px w-full bg-gradient-to-r from-transparent via-white/5 to-transparent mb-10"></div>
+              <p class="text-[8px] font-bold text-slate-600 uppercase tracking-widest">
+                  © ${new Date().getFullYear()} SportSaaS Pro - Software de gestión corporativa de torneos.
+              </p>
+          </div>
+      </footer>
     </div>
   `
 

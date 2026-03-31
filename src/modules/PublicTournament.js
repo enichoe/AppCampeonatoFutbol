@@ -639,9 +639,62 @@ export const renderPublicTournament = async (container, params) => {
             </section>
         </main>
         
-        <footer class="p-10 text-center">
-            <div class="h-px w-20 bg-primary/20 mx-auto mb-6"></div>
-            <p class="text-[9px] font-black uppercase tracking-[0.5em] text-white/20">Powered by SportSaaS Pro</p>
+        <!-- SALES FOOTER (SaaS CTA) -->
+        <footer class="mt-20 border-t border-white/5 bg-slate-950/50 backdrop-blur-3xl pt-16 pb-10 px-6 overflow-hidden relative">
+            <div class="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-[100px]"></div>
+            <div class="absolute -top-40 -left-40 w-80 h-80 bg-secondary/10 rounded-full blur-[100px]"></div>
+
+            <div class="max-w-4xl mx-auto relative z-10 text-center">
+                <div class="mb-12">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-4 italic">¿Organizas un Campeonato?</h3>
+                    <h2 class="text-3xl md:text-4xl font-black italic uppercase tracking-tighter text-white mb-6">Lleva tu liga al <span class="text-primary italic">Siguiente Nivel</span></h2>
+                    <p class="text-sm font-bold text-slate-500 uppercase tracking-widest max-w-lg mx-auto leading-relaxed">
+                        Digitaliza tu torneo con la tecnología de <span class="text-white italic">AppFutbol Perú</span>. Resultados en vivo, tablas automáticas y gestión profesional.
+                    </p>
+                </div>
+
+                <!-- CTA BUTTON -->
+                <button onclick="window.location.href='/'" class="group relative px-10 py-5 bg-white text-black font-black uppercase italic text-sm rounded-2xl hover:bg-primary transition-all duration-500 shadow-[0_20px_50px_rgba(255,255,255,0.1)] hover:shadow-primary/20 overflow-hidden mb-16">
+                    <span class="relative z-10">Crea tu Torneo ➔</span>
+                    <div class="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+                </button>
+
+                <!-- FEATURES MINI GRID -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16 opacity-60">
+                    <div class="flex flex-col gap-2">
+                        <span class="text-lg">⚡</span>
+                        <span class="text-[9px] font-black uppercase tracking-widest text-white">Fixture Instantáneo</span>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <span class="text-lg">📊</span>
+                        <span class="text-[9px] font-black uppercase tracking-widest text-white">Tablas Automatizadas</span>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <span class="text-lg">📱</span>
+                        <span class="text-[9px] font-black uppercase tracking-widest text-white">Mobile First UI</span>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <span class="text-lg">📢</span>
+                        <span class="text-[9px] font-black uppercase tracking-widest text-white">Share Público</span>
+                    </div>
+                </div>
+
+                <!-- BOTTOM LINKS -->
+                <div class="h-px w-full bg-gradient-to-r from-transparent via-white/5 to-transparent mb-10"></div>
+                
+                <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-white/5 rounded-lg flex items-center justify-center p-1.5 border border-white/5">
+                            <img src="${torneo.logo_url || ''}" class="w-full h-full object-contain grayscale opacity-50" style="display: ${torneo.logo_url ? 'block' : 'none'}">
+                        </div>
+                        <span class="text-[9px] font-black uppercase tracking-[0.4em] text-white/30 italic">AppFutbol Perú</span>
+                    </div>
+                    
+                    <p class="text-[8px] font-bold text-slate-600 uppercase tracking-widest">
+                        © ${new Date().getFullYear()} Software para gestión de campeonatos. Todos los derechos reservados.
+                    </p>
+                </div>
+            </div>
         </footer>
     </div>
 
