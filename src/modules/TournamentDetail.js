@@ -20,39 +20,39 @@ export const renderTournamentDetail = async (container, tournamentId) => {
     const publicUrl = `${window.location.origin}?t=${tournament.slug}`
 
     container.innerHTML = `
-      <div class="space-y-8 fade-in">
+      <div class="space-y-10 fade-in pb-10">
           <!-- BREADCRUMBS & TITLE -->
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div>
-                  <nav class="flex gap-2 mb-2 text-[10px] font-black uppercase text-slate-500 tracking-widest">
-                    <button id="navBack" class="hover:text-indigo-400">Torneos</button>
-                    <span>/</span>
-                    <span class="text-white">Admin Panel</span>
+                  <nav class="flex gap-2 mb-3 text-[9px] font-black uppercase text-slate-600 tracking-[0.2em]">
+                    <button id="navBack" class="hover:text-indigo-400 transition-colors">Torneos</button>
+                    <span class="opacity-20 text-white">/</span>
+                    <span class="text-indigo-400 italic">Panel de Control</span>
                   </nav>
-                  <h1 class="text-4xl font-black text-white italic tracking-tighter">${tournament.nombre}</h1>
+                  <h1 class="text-4xl font-black text-white italic tracking-tighter uppercase leading-none truncate">${tournament.nombre}</h1>
               </div>
               <div class="flex items-center gap-3">
-                  <div class="px-4 py-2 bg-slate-800 rounded-xl border border-slate-700">
-                     <span class="text-[10px] font-bold text-slate-500 block uppercase">Link Público</span>
-                     <div class="flex items-center gap-2">
-                        <a href="${publicUrl}" target="_blank" class="text-xs text-indigo-400 font-bold hover:underline">Ver Vista Pública</a>
-                        <button id="btnCopyLink" class="p-1 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg></button>
+                  <div class="p-4 bg-slate-900 rounded-[1.5rem] border border-white/5 flex-grow md:flex-grow-0">
+                     <span class="text-[9px] font-black text-slate-500 block uppercase tracking-widest mb-1.5">Enlace Público</span>
+                     <div class="flex items-center gap-3">
+                        <a href="${publicUrl}" target="_blank" class="text-xs text-indigo-400 font-black hover:underline tracking-tight">Ver Vista en Vivo</a>
+                        <button id="btnCopyLink" class="p-2 bg-white/5 rounded-lg hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg></button>
                      </div>
                   </div>
               </div>
           </div>
 
-          <!-- TABS PRINCIPALES -->
-          <nav class="flex border-b border-slate-800 overflow-x-auto no-scrollbar">
+          <!-- TABS PRINCIPALES (Scrolleables) -->
+          <nav class="flex border-b border-white/5 overflow-x-auto no-scrollbar scroll-smooth -mx-5 px-5">
               <button class="tab-btn ${activeTab === 'resumen' ? 'active' : ''}" data-tab-id="resumen">Resumen</button>
-              <button class="tab-btn ${activeTab === 'equipos' ? 'active' : ''}" data-tab-id="equipos">Equipos & Jugadores</button>
+              <button class="tab-btn ${activeTab === 'equipos' ? 'active' : ''}" data-tab-id="equipos">Equipos</button>
               <button class="tab-btn ${activeTab === 'partidos' ? 'active' : ''}" data-tab-id="partidos">Partidos</button>
-              <button class="tab-btn ${activeTab === 'hall_of_fame' ? 'active' : ''}" data-tab-id="hall_of_fame">Cuadro de Honor</button>
-              <button class="tab-btn ${activeTab === 'infra' ? 'active' : ''}" data-tab-id="infra">Infraestructura</button>
-              <button class="tab-btn ${activeTab === 'config' ? 'active' : ''}" data-tab-id="config">Personalización</button>
+              <button class="tab-btn ${activeTab === 'hall_of_fame' ? 'active' : ''}" data-tab-id="hall_of_fame">Reconocimientos</button>
+              <button class="tab-btn ${activeTab === 'infra' ? 'active' : ''}" data-tab-id="infra">Sedes</button>
+              <button class="tab-btn ${activeTab === 'config' ? 'active' : ''}" data-tab-id="config">Ajustes</button>
           </nav>
 
-          <div id="tab-container" class="animate-fade-in">
+          <div id="tab-container" class="slide-up">
               <!-- El contenido se carga aquí -->
           </div>
       </div>
@@ -161,20 +161,21 @@ export const renderTournamentDetail = async (container, tournamentId) => {
     const faseActualFinalizada = totalFaseActual > 0 && completadosFaseActual === totalFaseActual
 
     el.innerHTML = `
-        <div class="space-y-8 fade-in">
+        <div class="space-y-10 fade-in">
             ${(() => {
                 const unprog = todosLosPartidos?.filter(p => !p.fecha_hora).length || 0
-                if (unprog > 0 && tournament.estado !== 'configuracion') {
+                if (unprog > 0 && tournament.estado !== 'configuracion' && tournament.estado !== 'finalizado') {
                     return `
-                    <div id="fixtureBannerResumen" class="p-6 bg-gradient-to-r from-indigo-600 to-indigo-800 rounded-3xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 slide-up">
-                        <div class="flex items-center gap-4 text-white text-center md:text-left">
-                            <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-xl shrink-0">📅</div>
+                    <div id="fixtureBannerResumen" class="p-8 bg-gradient-to-br from-indigo-600 to-indigo-900 rounded-[2.5rem] shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8 border border-white/10 relative overflow-hidden group">
+                        <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+                        <div class="flex items-center gap-6 text-white text-center md:text-left relative z-10">
+                            <div class="w-16 h-16 bg-white/10 backdrop-blur-xl rounded-[1.5rem] flex items-center justify-center text-3xl shrink-0 shadow-inner">📅</div>
                             <div>
-                                <h4 class="font-black italic uppercase tracking-tighter">Acción Requerida: Programar Fixture</h4>
-                                <p class="text-[10px] font-bold text-indigo-100 uppercase tracking-widest leading-none">Hay ${unprog} partidos sin fecha ni lugar asignado.</p>
+                                <h4 class="text-xl font-black italic uppercase tracking-tighter leading-tight">Acción Requerida: Programa tu Fixture</h4>
+                                <p class="text-[10px] font-black text-indigo-100 uppercase tracking-[0.2em] mt-1.5 opacity-80">Hay ${unprog} partidos sin fecha ni lugar asignado.</p>
                             </div>
                         </div>
-                        <button id="btnGoSchedule" class="px-6 py-3 bg-white text-indigo-900 rounded-xl text-[10px] font-black uppercase italic tracking-widest hover:bg-indigo-50 transition-all shadow-lg">Ir a Programar Partidos ➔</button>
+                        <button id="btnGoSchedule" class="relative z-10 px-8 py-5 bg-white text-indigo-950 rounded-2xl text-[10px] font-black uppercase italic tracking-widest hover:bg-indigo-50 transition-all shadow-xl active:scale-95 w-full md:w-auto">Completar Calendario ➔</button>
                     </div>
                     `
                 }
@@ -182,25 +183,36 @@ export const renderTournamentDetail = async (container, tournamentId) => {
             })()}
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="card bg-indigo-600/10 border-indigo-500/20 shadow-xl shadow-indigo-500/5">
-                <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-2 text-center">Estado del Torneo</p>
-                <h3 class="text-3xl font-black text-center text-white uppercase italic">${tournament.estado.replace('_', ' ')}</h3>
-            </div>
-            <div class="card bg-slate-800/20">
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 text-center">Progreso: ${faseActual.toUpperCase()}</p>
-                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden mb-2">
-                    <div class="bg-indigo-500 h-full transition-all duration-700 ease-out" style="width: ${progreso}%"></div>
+                <!-- Estado Card -->
+                <div class="card !p-8 bg-indigo-600/10 border-indigo-500/20 shadow-indigo-500/5 flex flex-col items-center justify-center text-center">
+                    <p class="text-[9px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Estado del Torneo</p>
+                    <div class="flex items-center gap-3">
+                        <span class="live-indicator"><span></span><span></span></span>
+                        <h3 class="text-3xl font-black text-white uppercase italic tracking-tighter">${tournament.estado.replace('_', ' ')}</h3>
+                    </div>
                 </div>
-                <p class="text-[10px] text-center font-bold text-slate-400">${completadosFaseActual} / ${totalFaseActual} PARTIDOS COMPLETADOS</p>
-            </div>
-            <div class="card bg-slate-800/20">
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 text-center">Configuración</p>
-                <div class="flex flex-col items-center">
-                    <span class="text-xs font-black text-white italic">${tournament.tipo.replace('_', ' ')}</span>
-                    <span class="text-[9px] text-slate-500 font-bold mt-1">${teams.length} EQUIPOS • ${tournament.configuracion.num_grupos || '?'} GRUPOS</span>
+
+                <!-- Progreso Card -->
+                <div class="card !p-8 bg-slate-900/40">
+                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 text-center">Progreso de la Fase: ${faseActual.toUpperCase()}</p>
+                    <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden mb-4 p-0.5 border border-white/5">
+                        <div class="bg-gradient-to-r from-indigo-600 to-indigo-400 h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(79,70,229,0.5)]" style="width: ${progreso}%"></div>
+                    </div>
+                    <p class="text-[10px] text-center font-black text-slate-400 uppercase tracking-widest">${completadosFaseActual} de ${totalFaseActual} encuentros finalizados</p>
+                </div>
+
+                <!-- Config Card -->
+                <div class="card !p-8 bg-slate-900/40">
+                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 text-center">Estructura del Torneo</p>
+                    <div class="flex flex-col items-center">
+                        <span class="text-2xl font-black text-white italic uppercase tracking-tighter">${tournament.tipo.replace('_', ' ')}</span>
+                        <div class="flex items-center gap-2 mt-2">
+                           <span class="px-3 py-1 bg-white/5 rounded-lg text-[9px] font-black text-slate-300 uppercase">${teams.length} EQUIPOS</span>
+                           <span class="px-3 py-1 bg-white/5 rounded-lg text-[9px] font-black text-slate-300 uppercase">${tournament.configuracion.num_groups || tournament.configuracion.num_grupos || '?'} GRUPOS</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
         <!-- SCHEDULING SUMMARY -->
         <div class="mt-8">
@@ -257,29 +269,34 @@ export const renderTournamentDetail = async (container, tournamentId) => {
                 ` : ''}
             </div>
             
-            <div class="card h-fit sticky top-8 bg-slate-900 border-slate-800">
-                <h4 class="font-black italic text-sm pb-4 mb-4 border-b border-white/5 uppercase">Master Control</h4>
+            <div class="card h-fit sticky top-10 bg-slate-900 shadow-2xl border-indigo-500/10">
+                <div class="p-2 mb-6 border-b border-white/5 flex items-center justify-between">
+                   <h4 class="font-black italic text-xs uppercase tracking-[0.2em] text-slate-500">Master Control</h4>
+                   <span class="live-indicator"><span></span><span></span></span>
+                </div>
                 <div class="space-y-4">
                     ${tournament.estado === 'configuracion' ? `
-                        <button id="btnStartFlow" class="btn-primary w-full py-4 text-[11px] font-black italic">REALIZAR SORTEO</button>
+                        <button id="btnStartFlow" class="btn-primary w-full shadow-indigo-600/30 uppercase text-[10px] font-black italic tracking-widest bg-indigo-600">INICIAR SORTEO DE EQUIPOS 🎲</button>
                     ` : ''}
                     ${tournament.estado === 'sorteo' ? `
-                        <button id="btnFixtureFlow" class="btn-primary w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-[11px] font-black italic">LANZAR FIXTURE</button>
+                        <button id="btnFixtureFlow" class="btn-primary w-full bg-emerald-600 hover:bg-emerald-500 text-[10px] font-black italic uppercase tracking-widest">ACTIVAR CALENDARIO (FIXTURE) ➔</button>
                     ` : ''}
-                    ${faseGruposFinalizada && !tieneEliminatoria && tournament.tipo === 'grupos_eliminatoria' ? `
-                        <button id="btnGenerarEliminatoria" class="btn-primary w-full py-4 bg-amber-600 hover:bg-amber-500 text-[11px] font-black italic">INICIAR ELIMINATORIA</button>
+                    ${faseGruposFinalizada && !tieneEliminatoria && tournament.tipo === 'grupos_eliminatoria' && tournament.estado !== 'finalizado' ? `
+                        <button id="btnGenerarEliminatoria" class="btn-primary w-full bg-amber-600 hover:bg-amber-500 text-[10px] font-black italic uppercase tracking-widest">SORTEAR LLAVES ELIMINATORIA ⚡</button>
                     ` : ''}
-                    ${tieneEliminatoria && faseActualFinalizada && faseActual !== 'final' ? `
-                        <button id="btnAvanzarFase" class="btn-primary w-full py-4 bg-blue-600 hover:bg-blue-500 text-[11px] font-black italic uppercase">AVANZAR A SIGUIENTE RONDA</button>
+                    ${tieneEliminatoria && faseActualFinalizada && faseActual !== 'final' && tournament.estado !== 'finalizado' ? `
+                        <button id="btnAvanzarFase" class="btn-primary w-full bg-blue-600 hover:bg-blue-500 text-[10px] font-black italic uppercase tracking-widest">AVANZAR A ${fasesNombre[fasesNombre.indexOf(faseActual) + 1]?.toUpperCase() || 'SIGUIENTE RONDA'} ➔</button>
                     ` : ''}
                     ${(faseActual === 'final' && faseActualFinalizada) || (tournament.tipo === 'liga' && faseGruposFinalizada) ? `
-                        <div class="p-6 bg-gradient-to-br from-indigo-600/20 to-transparent rounded-2xl border border-indigo-500/20 text-center mb-6">
-                            <h3 class="text-lg font-black text-white italic mb-1 uppercase">¡Competición Terminada!</h3>
+                        <div class="p-8 bg-gradient-to-br from-emerald-600/20 to-transparent rounded-[2rem] border border-emerald-500/20 text-center mb-6">
+                            <div class="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">🏆</div>
+                            <h3 class="text-xl font-black text-white italic mb-2 uppercase tracking-tighter">Competición Terminada</h3>
+                            <p class="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mb-6">Todos los encuentros han finalizado</p>
                             ${tournament.estado !== 'finalizado' ? `
-                                <button id="btnFinalizarTorneo" class="mt-4 btn-primary w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-[11px] font-black italic uppercase">FINALIZAR TORNEO OFICIALMENTE 🏆</button>
+                                <button id="btnFinalizarTorneo" class="btn-primary w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-[10px] font-black italic uppercase tracking-widest">CORONAR AL CAMPEÓN 🏁</button>
                             ` : `
-                                <div class="mt-4 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-                                    <span class="text-[10px] font-black text-emerald-400 uppercase italic tracking-widest">ESTADO: FINALIZADO ✅</span>
+                                <div class="px-4 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                                    <span class="text-[10px] font-black text-emerald-400 uppercase italic tracking-[0.2em]">TORNEO FINALIZADO ✅</span>
                                 </div>
                             `}
                         </div>
@@ -331,18 +348,22 @@ export const renderTournamentDetail = async (container, tournamentId) => {
                 if (t && t.length > 0) {
                     tablesHtml += `
                         <div class="card !p-0 overflow-hidden border-white/5 bg-slate-900/40">
-                            <div class="px-4 py-2 bg-slate-800/80 flex justify-between items-center border-b border-white/5">
-                                <span class="text-[10px] font-black uppercase text-indigo-400 italic font-bold">${g.nombre}</span>
+                            <div class="px-6 py-4 bg-slate-800/50 flex justify-between items-center border-b border-white/5">
+                                <span class="text-[10px] font-black uppercase text-indigo-400 italic font-bold tracking-[0.2em]">${g.nombre}</span>
                             </div>
-                            <table class="w-full text-xs">
-                                <tbody class="divide-y divide-white/5">
-                                    ${t.map((r, i) => `<tr class="${i < (tournament.configuracion.clasificados || 2) ? 'bg-indigo-500/5' : ''}">
-                                        <td class="p-3 text-slate-500 w-8 font-black">${i+1}</td>
-                                        <td class="p-3 font-bold text-slate-200">${r.equipos?.nombre || '???'}</td>
-                                        <td class="p-3 text-right font-black text-indigo-400">${r.pts} pts</td>
-                                    </tr>`).join('')}
-                                </tbody>
-                            </table>
+                            <div class="divide-y divide-white/5">
+                                ${t.map((r, i) => `
+                                    <div class="flex items-center justify-between p-4 ${i < (tournament.configuracion.clasificados || 2) ? 'bg-indigo-500/5' : ''}">
+                                        <div class="flex items-center gap-4">
+                                            <span class="text-[10px] font-black text-slate-600 w-4">${i+1}</span>
+                                            <span class="text-xs font-bold text-slate-200 uppercase tracking-tight">${r.equipos?.nombre || '???'}</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="text-xs font-black text-indigo-400 font-mono">${r.pts} <span class="text-[8px] text-slate-500 uppercase ml-0.5">pts</span></span>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
                         </div>
                     `
                 }

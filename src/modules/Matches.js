@@ -51,7 +51,13 @@ export const renderMatches = async (container) => {
 
     let html = ''
     sortedPhases.forEach(phase => {
-      html += `<div class="mb-6"><h4 class="text-sm font-black uppercase text-slate-400 mb-2">${phase}</h4>`
+      html += `
+        <div class="mb-12">
+          <div class="flex items-center gap-4 mb-6">
+            <h4 class="text-xs font-black uppercase text-indigo-500 italic tracking-[0.2em]">${phase}</h4>
+            <div class="flex-1 h-px bg-white/5"></div>
+          </div>
+      `
 
       // Agrupar por fecha
       const byDate = {}
@@ -62,35 +68,52 @@ export const renderMatches = async (container) => {
       })
 
       Object.entries(byDate).forEach(([date, matches]) => {
-        html += `<p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-4 mb-2">${date}</p>`
+        html += `<p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mt-8 mb-4 ml-2">${date}</p>`
         matches.forEach(m => {
           const time = m.fecha_hora ? new Date(m.fecha_hora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'
-          const venue = m.campo || m.sede || m.escenario || m.venue || 'Sede no definida'
+          const venue = m.campo || m.sede || m.escenario || m.venue || 'Sede TBD'
           const state = m.estado || 'pendiente'
-          const sponsorHtml = (m.torneos && m.torneos.patrocinadores && m.torneos.patrocinadores.length)
-            ? `<div class="flex items-center gap-2 mt-3">${m.torneos.patrocinadores.slice(0,3).map(p=> p.logo_url ? `<img src="${p.logo_url}" class="h-6 object-contain" loading="lazy">` : `<span class="text-xs font-bold text-slate-500">${p.nombre}</span>`).join('')}</div>`
-            : ''
-
+          
           html += `
-            <div class="card p-4 mb-3 flex items-center justify-between gap-4 border border-slate-700/40">
-            <div class="flex items-center gap-3 w-1/3">
-              <img src="${m.local?.escudo_url || 'https://ui-avatars.com/api/?name='+m.local?.nombre}" class="w-10 h-10 rounded-md object-contain" loading="lazy">
-              <div class="text-sm font-black text-slate-200 truncate">${m.local?.nombre}</div>
-            </div>
-            <div class="text-center w-1/3">
-              <div class="text-[11px] text-slate-400 font-bold mb-1">${time} • ${venue}</div>
-              <div class="flex items-center justify-center gap-3">
-                <div class="text-2xl font-black text-white">${m.goles_local ?? '-'}</div>
-                <div class="text-sm text-slate-500 font-black">vs</div>
-                <div class="text-2xl font-black text-white">${m.goles_visitante ?? '-'}</div>
-              </div>
-              <div class="text-[10px] mt-2 uppercase font-black ${state === 'finalizado' ? 'text-emerald-400' : state === 'en_juego' ? 'text-amber-400' : 'text-slate-500'}">${state}</div>
-              ${sponsorHtml}
-            </div>
-            <div class="flex items-center gap-3 w-1/3 justify-end">
-              <div class="text-sm font-black text-slate-200 truncate mr-4">${m.visitante?.nombre}</div>
-              <img src="${m.visitante?.escudo_url || 'https://ui-avatars.com/api/?name='+m.visitante?.nombre}" class="w-10 h-10 rounded-md object-contain" loading="lazy">
-            </div>
+            <div class="card !p-5 mb-4 border border-white/5 bg-slate-900/40 glass-hover">
+               <div class="flex items-center justify-between gap-4">
+                  <!-- Local -->
+                  <div class="flex flex-col items-center gap-2 flex-1 min-w-0">
+                     <div class="w-12 h-12 bg-slate-950 rounded-2xl p-2 border border-white/5 flex items-center justify-center">
+                        <img src="${m.local?.escudo_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(m.local?.nombre || 'Team')}" class="w-full h-full object-contain" loading="lazy">
+                     </div>
+                     <span class="text-[10px] font-black text-white uppercase italic tracking-tighter text-center truncate w-full">${m.local?.nombre || 'TBD'}</span>
+                  </div>
+
+                  <!-- Marcador -->
+                  <div class="flex flex-col items-center justify-center px-4">
+                     <div class="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2">${time}</div>
+                     <div class="flex items-center gap-3">
+                        <span class="text-3xl font-black italic text-white tracking-tighter">${m.goles_local ?? '-'}</span>
+                        <span class="text-[10px] text-slate-700 font-black italic opacity-50">VS</span>
+                        <span class="text-3xl font-black italic text-white tracking-tighter">${m.goles_visitante ?? '-'}</span>
+                     </div>
+                     <div class="mt-3">
+                        <span class="badge ${state === 'finalizado' ? 'badge-finished' : state === 'en_juego' ? 'badge-live' : 'badge-pending'} scale-90">
+                           ${state}
+                        </span>
+                     </div>
+                  </div>
+
+                  <!-- Visitante -->
+                  <div class="flex flex-col items-center gap-2 flex-1 min-w-0">
+                     <div class="w-12 h-12 bg-slate-950 rounded-2xl p-2 border border-white/5 flex items-center justify-center">
+                        <img src="${m.visitante?.escudo_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(m.visitante?.nombre || 'Team')}" class="w-full h-full object-contain" loading="lazy">
+                     </div>
+                     <span class="text-[10px] font-black text-white uppercase italic tracking-tighter text-center truncate w-full">${m.visitante?.nombre || 'TBD'}</span>
+                  </div>
+               </div>
+               
+               <!-- Info Extra -->
+               <div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-center gap-4 text-[9px] font-bold text-slate-500 uppercase tracking-widest">
+                   <div class="flex items-center gap-1.5"><svg class="w-3 h-3 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>${venue}</div>
+                   ${m.torneos?.nombre ? `<div class="w-1 h-1 bg-slate-800 rounded-full"></div><div>${m.torneos.nombre}</div>` : ''}
+               </div>
             </div>
           `
         })

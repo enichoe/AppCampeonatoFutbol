@@ -3,16 +3,16 @@ import { generateSlug } from '../utils/tournamentEngine.js'
 
 export const renderTournaments = async (container) => {
   container.innerHTML = `
-    <div class="flex items-center justify-between mb-8">
-       <div>
-         <h2 class="text-3xl font-extrabold text-white">Gestión de Torneos</h2>
-         <p class="text-slate-500 mt-1">Crea, edita y organiza tus ligas o copas.</p>
-       </div>
-       <button id="btnCreateTournament" class="btn-primary animate-pulse py-3">
-         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-         <span>Nuevo Torneo</span>
-       </button>
-    </div>
+     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+        <div>
+          <h2 class="text-3xl font-black text-white italic tracking-tighter uppercase">Mis Torneos</h2>
+          <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Gestión centralizada de campeonatos</p>
+        </div>
+        <button id="btnCreateTournament" class="btn-primary w-full md:w-auto shadow-indigo-600/40">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+          <span class="uppercase tracking-widest text-xs">Nuevo Torneo</span>
+        </button>
+     </div>
 
     <!-- Filtros Rápidos -->
     <div class="flex gap-4 mb-8">
@@ -30,70 +30,75 @@ export const renderTournaments = async (container) => {
     </div>
 
     <!-- Modal de Creación -->
-    <div id="tournamentModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/80 backdrop-blur-sm transition-all duration-300">
-        <div class="card w-full max-w-xl shadow-2xl scale-95 opacity-0 transition-all duration-300" id="modalContainer">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold">Crear Nuevo Torneo</h3>
-                <button id="closeModal" class="text-slate-500 hover:text-white transition-colors">
+    <div id="tournamentModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-0 md:p-6 bg-slate-950/95 backdrop-blur-xl transition-all duration-300">
+        <div class="card w-full h-full md:h-auto md:max-w-xl shadow-2xl scale-95 opacity-0 transition-all duration-300 rounded-none md:rounded-[2.5rem] flex flex-col" id="modalContainer">
+            <div class="flex justify-between items-center mb-8 p-6 md:p-0">
+                <div>
+                   <h3 class="text-2xl font-black italic uppercase tracking-tighter">Configurar Torneo</h3>
+                   <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Define las reglas de tu competición</p>
+                </div>
+                <button id="closeModal" class="p-3 bg-white/5 rounded-2xl text-slate-500 hover:text-white transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
 
-            <form id="tournamentForm" class="space-y-6">
-                <div class="grid grid-cols-1 gap-4">
+            <form id="tournamentForm" class="space-y-8 p-6 md:p-0 flex-grow overflow-y-auto no-scrollbar">
+                <div class="space-y-6">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Nombre del Torneo</label>
-                        <input type="text" name="nombre" placeholder="Ej: Champions League 2026" required class="form-input">
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Nombre del Torneo</label>
+                        <input type="text" name="nombre" placeholder="Ej: Copa Master 2026" required class="form-input">
                     </div>
 
                     <!-- Upload Logo Section -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Logo del Torneo</label>
-                        <div class="flex items-center gap-4 p-4 bg-slate-800/50 rounded-xl border border-dashed border-slate-700">
-                            <div id="logoPreview" class="w-16 h-16 rounded-lg bg-slate-700 flex items-center justify-center overflow-hidden border border-slate-600">
-                                <svg class="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Identidad Visual (Logo)</label>
+                        <div class="flex items-center gap-6 p-6 bg-slate-900/50 rounded-[2rem] border border-dashed border-white/10">
+                            <div id="logoPreview" class="w-20 h-20 rounded-2xl bg-slate-800 flex items-center justify-center overflow-hidden border border-white/5 shadow-xl">
+                                <svg class="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             </div>
                             <div class="flex-1">
                                 <input type="file" id="inputLogo" name="logo" accept="image/*" class="hidden">
-                                <button type="button" onclick="document.getElementById('inputLogo').click()" class="text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg transition-all">
-                                    Seleccionar Imagen
+                                <button type="button" onclick="document.getElementById('inputLogo').click()" class="text-[10px] font-black uppercase tracking-widest bg-white/5 hover:bg-white/10 text-white px-5 py-3 rounded-xl transition-all border border-white/5">
+                                    Subir Imagen
                                 </button>
-                                <p class="text-[10px] text-slate-500 mt-2">Máximo 2MB. JPG, PNG o WebP.</p>
+                                <p class="text-[9px] font-bold text-slate-600 mt-2 uppercase tracking-tight">Recomendado: 512x512px • PNG/JPG</p>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Tipo de Torneo</label>
-                        <select id="selectTipo" name="tipo" class="form-input appearance-none bg-slate-800">
-                            <option value="liga">Modo Liga (Todos contra todos)</option>
-                            <option value="grupos_eliminatoria">Grupos + Eliminación (FIFA Style)</option>
-                            <option value="eliminatoria">Eliminatoria Directa</option>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Sistema de Juego</label>
+                        <select id="selectTipo" name="tipo" class="form-input bg-slate-900">
+                            <option value="liga">🏆 Liga Profesional (Puntos)</option>
+                            <option value="grupos_eliminatoria">🔥 Grupos + Play-offs</option>
+                            <option value="eliminatoria">⚔️ Eliminación Directa</option>
                         </select>
                     </div>
 
-                    <div id="configGrupos" class="hidden grid grid-cols-2 gap-4 p-4 bg-slate-800/50 rounded-xl border border-slate-700 animate-fade-in">
+                    <div id="configGrupos" class="hidden grid grid-cols-2 gap-4 p-6 bg-indigo-600/5 rounded-[2rem] border border-indigo-500/10 animate-fade-in">
                         <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Núm. de Grupos</label>
-                            <input type="number" name="num_grupos" value="4" class="form-input">
+                            <label class="block text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Núm. Grupos</label>
+                            <input type="number" name="num_groups" value="4" class="form-input !bg-slate-950/50">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Clasificados x Grupo</label>
-                            <input type="number" name="clasificados" value="2" class="form-input">
+                            <label class="block text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Clasificados</label>
+                            <input type="number" name="clasificados" value="2" class="form-input !bg-slate-950/50">
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-6 p-4">
-                        <label class="flex items-center gap-2 cursor-pointer group">
-                             <input type="checkbox" name="ida_vuelta" class="hidden peer">
-                             <div class="w-10 h-6 bg-slate-700 rounded-full relative peer-checked:bg-indigo-600 transition-all after:content-[''] after:absolute after:top-1 after:left-1 after:w-4 after:h-4 after:bg-white after:rounded-full after:transition-all peer-checked:after:translate-x-4"></div>
-                             <span class="text-sm font-medium text-slate-400 group-hover:text-white transition-colors">¿Ida y vuelta?</span>
+                    <div class="p-6 bg-white/5 rounded-[2rem] border border-white/5">
+                        <label class="flex items-center justify-between cursor-pointer group">
+                             <span class="text-xs font-bold text-slate-400 group-hover:text-white transition-colors uppercase tracking-widest">Partidos de Ida y Vuelta</span>
+                             <div class="relative">
+                                 <input type="checkbox" name="ida_vuelta" class="hidden peer">
+                                 <div class="w-12 h-6 bg-slate-800 rounded-full relative peer-checked:bg-indigo-500 transition-all after:content-[''] after:absolute after:top-1 after:left-1 after:w-4 after:h-4 after:bg-white after:rounded-full after:transition-all peer-checked:after:translate-x-6 shadow-inner"></div>
+                             </div>
                         </label>
                     </div>
                 </div>
-                <div class="flex gap-4 pt-4 border-t border-slate-700">
-                    <button type="submit" id="btnSubmitTournament" class="btn-primary flex-1 h-12">Crear Torneo</button>
-                    <button type="button" class="btn-secondary px-8 bg-transparent" id="cancelModal">Cancelar</button>
+                <div class="flex flex-col md:flex-row gap-4 pt-6 md:pt-8 border-t border-white/5">
+                    <button type="submit" id="btnSubmitTournament" class="btn-primary flex-1 shadow-indigo-600/20 uppercase text-xs tracking-widest">Crear Torneo Oficial</button>
+                    <button type="button" class="btn-secondary px-8 border-transparent" id="cancelModal">Descartar</button>
                 </div>
             </form>
         </div>
@@ -128,24 +133,31 @@ export const renderTournaments = async (container) => {
     }
 
     listContainer.innerHTML = data.map(t => `
-      <div class="card glass-hover group flex flex-col justify-between h-full overflow-hidden border-slate-700/50">
-           <div class="relative h-24 -mx-6 -mt-6 mb-4 bg-gradient-to-br from-indigo-600/20 to-slate-900 border-b border-slate-700/50 flex items-center justify-center">
+      <div class="card glass-hover group flex flex-col justify-between h-full overflow-hidden border-white/5 !p-0">
+           <div class="relative h-32 bg-gradient-to-br from-indigo-900/40 via-slate-900 to-slate-950 flex items-center justify-center p-6 overflow-hidden">
+              <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
               ${t.logo_url 
-                ? `<img src="${t.logo_url}" class="w-20 h-20 object-contain drop-shadow-xl" alt="Logo">`
-                : `<div class="w-16 h-16 rounded-xl bg-slate-800 flex items-center justify-center text-2xl font-black text-slate-600">${t.nombre.charAt(0).toUpperCase()}</div>`
+                ? `<img src="${t.logo_url}" class="w-24 h-24 object-contain drop-shadow-2xl z-10 transition-transform duration-500 group-hover:scale-110" alt="Logo">`
+                : `<div class="w-20 h-20 rounded-[2rem] bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-3xl font-black text-indigo-500 z-10">${t.nombre.charAt(0).toUpperCase()}</div>`
               }
-           </div>
-           <div>
-              <div class="flex items-center justify-between mb-2">
-                 <span class="px-2 py-1 bg-indigo-500/10 text-indigo-400 text-[9px] font-black uppercase rounded border border-indigo-500/10">${t.tipo}</span>
-                 <button class="p-2 hover:bg-red-500/20 text-red-500/50 hover:text-red-500 rounded-lg btn-delete transition-all" data-id="${t.id}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+              <div class="absolute top-4 right-4 z-20">
+                 <button class="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl btn-delete transition-all opacity-0 group-hover:opacity-100" data-id="${t.id}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
               </div>
-              <h3 class="text-xl font-black text-white mb-1 line-clamp-1">${t.nombre}</h3>
-              <p class="text-slate-500 text-[10px] mb-4 uppercase font-bold tracking-tighter">ID: ${t.slug || '---'}</p>
            </div>
            
-           <div class="pt-4 border-t border-slate-800 space-y-3">
-               <button class="btn-primary w-full py-2.5 text-[11px] font-black btn-details uppercase tracking-widest" data-id="${t.id}">Administrar</button>
+           <div class="p-6 space-y-4">
+              <div>
+                  <div class="flex items-center gap-2 mb-2">
+                     <span class="badge badge-pending text-[8px] font-black">${t.tipo.replace('_', ' ')}</span>
+                     <span class="text-[9px] font-bold text-slate-600 uppercase tracking-widest">${t.estado || 'Configuración'}</span>
+                  </div>
+                  <h3 class="text-xl font-black text-white italic line-clamp-1 truncate">${t.nombre}</h3>
+                  <p class="text-slate-500 text-[10px] mt-1 font-bold tracking-tighter uppercase">ID PÚBLICO: ${t.slug || '---'}</p>
+              </div>
+              
+              <div class="pt-4 border-t border-white/5">
+                  <button class="btn-primary w-full py-4 text-[10px] font-black btn-details uppercase tracking-[0.2em] shadow-indigo-600/10" data-id="${t.id}">GESTIONAR PANEL ➔</button>
+              </div>
            </div>
       </div>
     `).join('')

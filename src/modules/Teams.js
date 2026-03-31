@@ -2,22 +2,22 @@ import { supabase } from '../services/supabase.js'
 
 export const renderTeams = async (container) => {
   container.innerHTML = `
-    <div class="flex items-center justify-between mb-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
        <div>
-         <h2 class="text-3xl font-extrabold text-white">Equipos</h2>
-         <p class="text-slate-500 mt-1">Administra los equipos y sus plantillas.</p>
+         <h2 class="text-3xl font-black text-white italic tracking-tighter uppercase">Clubes & Equipos</h2>
+         <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Gestión de plantillas y registros</p>
        </div>
-       <button id="btnCreateTeam" class="btn-primary py-3">
+       <button id="btnCreateTeam" class="btn-primary w-full md:w-auto shadow-indigo-600/40">
          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-         <span>Nuevo Equipo</span>
+         <span class="uppercase tracking-widest text-xs">Registrar Equipo</span>
        </button>
     </div>
 
     <!-- Filtro por Torneo -->
-    <div class="mb-8 flex flex-col gap-2 max-w-sm">
-        <label class="text-xs font-bold text-slate-500 uppercase">Filtrar por Torneo</label>
-        <select id="tournamentFilter" class="form-input bg-slate-800">
-            <option value="all">Todos los Torneos</option>
+    <div class="mb-10 p-6 bg-slate-900/40 rounded-[2rem] border border-white/5 max-w-sm">
+        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Filtrar por Competición</label>
+        <select id="tournamentFilter" class="form-input bg-slate-950">
+            <option value="all">Ver todas las ligas</option>
             <!-- Opciones dinámicas -->
         </select>
     </div>
@@ -27,33 +27,36 @@ export const renderTeams = async (container) => {
     </div>
 
     <!-- Modal de Creación -->
-    <div id="teamModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/80 backdrop-blur-sm transition-all duration-300">
-        <div class="card w-full max-w-lg shadow-2xl" id="modalContainer">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold">Inscribir Equipo</h3>
-                <button id="closeModal" class="text-slate-500 hover:text-white transition-colors">
+    <div id="teamModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-0 md:p-6 bg-slate-950/95 backdrop-blur-xl transition-all duration-300">
+        <div class="card w-full h-full md:h-auto md:max-w-lg shadow-2xl scale-95 opacity-0 transition-all duration-300 rounded-none md:rounded-[2.5rem] flex flex-col" id="modalContainer">
+            <div class="flex justify-between items-center mb-8 p-6 md:p-0">
+                <div>
+                   <h3 class="text-2xl font-black italic uppercase tracking-tighter">Inscribir Equipo</h3>
+                   <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Registra una nueva entidad deportiva</p>
+                </div>
+                <button id="closeModal" class="p-3 bg-white/5 rounded-2xl text-slate-500 hover:text-white transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
 
-            <form id="teamForm" class="space-y-6">
+            <form id="teamForm" class="space-y-6 p-6 md:p-0">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Nombre del Equipo</label>
-                    <input type="text" name="nombre" placeholder="Ej: Real FC" required class="form-input">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Nombre Oficial del Club</label>
+                    <input type="text" name="nombre" placeholder="Ej: Manchester City FC" required class="form-input">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Asignar a Torneo</label>
-                    <select name="torneo_id" id="tournamentSelect" class="form-input bg-slate-800" required>
-                        <option value="">Selecciona un torneo</option>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Asociar a Camponato</label>
+                    <select name="torneo_id" id="tournamentSelect" class="form-input bg-slate-950" required>
+                        <option value="">Selecciona un torneo...</option>
                     </select>
                 </div>
                 <div>
-                   <label class="block text-xs font-bold text-slate-500 uppercase mb-2">URL del Escudo (opcional)</label>
-                   <input type="url" name="escudo_url" placeholder="https://..." class="form-input">
+                   <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Logo / Escudo (URL)</label>
+                   <input type="url" name="escudo_url" placeholder="https://ejemplo.com/logo.png" class="form-input">
                 </div>
-                <div class="flex gap-4 pt-4 border-t border-slate-700">
-                    <button type="submit" class="btn-primary flex-1 h-12">Confirmar Registro</button>
-                    <button type="button" class="btn-secondary px-8 bg-transparent" id="cancelModal">Cancelar</button>
+                <div class="flex flex-col md:flex-row gap-4 pt-8 border-t border-white/5">
+                    <button type="submit" class="btn-primary flex-1 shadow-indigo-600/20 uppercase text-xs font-black tracking-widest">Confirmar Inscripción ➔</button>
+                    <button type="button" class="btn-secondary px-8 border-transparent" id="cancelModal">Cancelar</button>
                 </div>
             </form>
         </div>
@@ -95,13 +98,14 @@ export const renderTeams = async (container) => {
         listContainer.innerHTML = '<p class="col-span-full text-center text-slate-500 py-20">No tienes equipos registrados.</p>'
     } else {
         listContainer.innerHTML = teams.map(t => `
-            <div class="card p-4 flex flex-col items-center glass-hover">
-                <div class="w-16 h-16 bg-slate-700 rounded-2xl flex items-center justify-center mb-4 border border-slate-600 overflow-hidden">
-                    ${t.escudo_url ? `<img src="${t.escudo_url}" class="w-12 h-12 object-contain" loading="lazy">` : `<svg class="w-8 h-8 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.5 1.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" clip-rule="evenodd"></path></svg>`}
+            <div class="card p-6 flex flex-col items-center glass-hover group text-center relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="w-24 h-24 bg-slate-900 rounded-[2.5rem] flex items-center justify-center mb-5 border border-white/5 overflow-hidden shadow-2xl relative z-10">
+                    ${t.escudo_url ? `<img src="${t.escudo_url}" class="w-16 h-16 object-contain transition-transform group-hover:scale-110" loading="lazy">` : `<span class="text-3xl font-black text-indigo-500">${t.nombre.charAt(0).toUpperCase()}</span>`}
                 </div>
-                <h4 class="font-bold text-center mb-1 leading-tight">${t.nombre}</h4>
-                <p class="text-[10px] text-indigo-400 font-bold uppercase truncate max-w-full">${t.torneos?.nombre || 'Sin Torneo'}</p>
-                <button class="btn-view-players mt-3 btn-primary text-xs" data-team-id="${t.id}">Ver jugadores</button>
+                <h4 class="font-black italic text-xl text-white uppercase tracking-tighter mb-2 relative z-10 leading-tight">${t.nombre}</h4>
+                <p class="text-[9px] text-indigo-400 font-bold uppercase tracking-[0.2em] mb-6 relative z-10 px-3 py-1 bg-indigo-500/5 rounded-full border border-indigo-500/10 truncate max-w-full">${t.torneos?.nombre || 'Categoría Libre'}</p>
+                <button class="btn-view-players w-full mt-auto btn-primary !py-3 !rounded-2xl text-[10px] font-black uppercase tracking-widest relative z-10 shadow-indigo-600/10" data-team-id="${t.id}">Ver Plantilla ➔</button>
             </div>
         `).join('')
     }
