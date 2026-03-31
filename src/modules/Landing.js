@@ -10,7 +10,7 @@ export const renderLanding = (container) => {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
               </svg>
             </div>
-            <span class="text-2xl font-black italic uppercase tracking-tighter">SportSaaS</span>
+            <span class="text-2xl font-black italic uppercase tracking-tighter">Fútbol App</span>
           </div>
           <div class="hidden md:flex items-center gap-8 text-sm font-bold uppercase tracking-widest text-slate-400">
             <a href="#features" class="hover:text-white transition-colors">Funcionalidades</a>
@@ -19,7 +19,7 @@ export const renderLanding = (container) => {
           </div>
           <div class="flex items-center gap-4">
             <button onclick="navigate('auth')" class="hidden md:block text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors">Ingresar</button>
-            <button onclick="navigate('auth')" class="btn-primary !py-3 !px-6 !text-[10px] uppercase tracking-widest font-black">Crear Torneo Gratis</button>
+            <button onclick="navigate('auth')" class="btn-primary !py-3 !px-6 !text-[10px] uppercase tracking-widest font-black">Crear Campeonato Gratis</button>
           </div>
         </div>
       </nav>
@@ -85,7 +85,7 @@ export const renderLanding = (container) => {
         <div class="max-w-7xl mx-auto px-6">
           <div class="mb-20 text-center">
              <h2 class="text-[10px] font-black text-indigo-500 uppercase tracking-[0.4em] mb-4 italic">Características</h2>
-             <h3 class="text-4xl md:text-6xl font-black italic uppercase tracking-tighter font-black italic uppercase tracking-tighter">TODO LO QUE NECESITAS <br/> PARA <span class="text-indigo-400">ORGANIZAR TU LIGA</span></h3>
+             <h3 class="text-4xl md:text-6xl font-black italic uppercase tracking-tighter font-black italic uppercase tracking-tighter">TODO LO QUE NECESITAS <br/> PARA <span class="text-indigo-400">ORGANIZAR TU CAMPEONATO</span></h3>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -163,7 +163,7 @@ export const renderLanding = (container) => {
 
       <!-- Footer -->
       <footer class="py-10 border-t border-white/5 text-center">
-        <p class="text-xs font-bold text-slate-500 uppercase tracking-[0.3em]">© ${new Date().getFullYear()} SportSaaS Pro — Hecho para los amantes del fútbol.</p>
+        <p class="text-xs font-bold text-slate-500 uppercase tracking-[0.3em]">© ${new Date().getFullYear()} Fútbol App — Hecho para los amantes del fútbol.</p>
       </footer>
     </div>
   `
