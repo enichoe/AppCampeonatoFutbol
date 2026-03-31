@@ -1,13 +1,35 @@
 import { supabase } from '../services/supabase.js'
 
-// 1. GENERADOR DE SLUGS SEGURO
-export const generateSlug = (nombre) => {
-    const clean = nombre.toLowerCase().trim()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/[\s_-]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-    const random = Math.random().toString(36).substring(2, 7);
-    return `${clean}-${random}`;
+// 1. GENERADOR DE SLUGS SEO-FRIENDLY
+export const slugify = (text) => {
+    return text.toString().toLowerCase().trim()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Eliminar acentos
+        .replace(/[^\w\s-]/g, '') // Eliminar caracteres especiales
+        .replace(/[\s_-]+/g, '-') // Espacios y guiones bajos a guiones
+        .replace(/^-+|-+$/g, ''); // Limpiar extremos
+}
+
+export const generateSlug = async (nombre) => {
+    const baseSlug = slugify(nombre);
+    let finalSlug = baseSlug;
+    let counter = 1;
+    let exists = true;
+
+    while (exists) {
+        const { data } = await supabase
+            .from('torneos')
+            .select('slug')
+            .eq('slug', finalSlug)
+            .maybeSingle();
+        
+        if (!data) {
+            exists = false;
+        } else {
+            counter++;
+            finalSlug = `${baseSlug}-${counter}`;
+        }
+    }
+    return finalSlug;
 }
 
 // 2. SORTEO Y DISTRIBUCIÓN

@@ -2,66 +2,38 @@ import { supabase } from '../services/supabase.js'
 
 export const renderAuth = (container) => {
   container.innerHTML = `
-    <div class="min-h-screen flex flex-col bg-slate-900 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-900 via-slate-900 to-indigo-950/20">
-      <div class="flex-grow flex items-center justify-center p-6">
-        <div class="card w-full max-w-md fade-in">
+    <div class="min-h-screen flex flex-col bg-slate-950 relative overflow-hidden text-white">
+      <!-- Glow decoration -->
+      <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-indigo-600/20 blur-[120px] rounded-full pointer-events-none"></div>
+
+      <div class="flex-grow flex items-center justify-center p-6 relative z-10">
+        <div class="w-full max-w-md animate-fade-in">
           <div class="flex flex-col items-center mb-10">
-            <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-xl shadow-indigo-600/30">
+            <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-2xl shadow-indigo-600/40 cursor-pointer" onclick="navigate('landing')">
               <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
               </svg>
             </div>
-            <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 font-black italic uppercase tracking-tighter">SportSaaS Pro</h1>
-            <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-2">Gestiona tus torneos como un profesional</p>
+            <h1 class="text-4xl font-black text-white italic uppercase tracking-tighter">SportSaaS</h1>
+            <p class="text-slate-500 text-[10px] font-bold uppercase tracking-[0.3em] mt-3">Plataforma de Gestión Deportiva</p>
           </div>
 
-          <div id="authContent">
-            <!-- Renderizado dinámico entre Login y Registro -->
-          </div>
+          <div class="card !p-8 md:!p-10 border-white/5 bg-slate-900/50 backdrop-blur-3xl shadow-2xl">
+            <div id="authContent">
+              <!-- Dynamically rendered -->
+            </div>
 
-          <div id="authFooter" class="mt-8 text-center text-sm text-slate-500">
-             <!-- Links de cambio de modo -->
+            <div id="authFooter" class="mt-8 text-center">
+               <!-- Toggle links -->
+            </div>
           </div>
+          
+          <button onclick="navigate('landing')" class="mt-8 mx-auto flex items-center gap-2 text-slate-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Volver al inicio
+          </button>
         </div>
       </div>
-
-      <!-- SALES FOOTER (SaaS CTA) -->
-      <footer class="border-t border-white/5 bg-slate-950/50 backdrop-blur-3xl pt-16 pb-10 px-6 overflow-hidden relative">
-          <div class="max-w-4xl mx-auto relative z-10 text-center">
-              <div class="mb-12">
-                  <h3 class="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-400 mb-4 italic">¿Organizas un Campeonato?</h3>
-                  <h2 class="text-3xl md:text-3xl font-black italic uppercase tracking-tighter text-white mb-6 font-black italic uppercase tracking-tighter">Lleva tu liga al <span class="text-indigo-400 italic">Siguiente Nivel</span></h2>
-                  <p class="text-xs font-bold text-slate-500 uppercase tracking-widest max-w-lg mx-auto leading-relaxed">
-                      Digitaliza tu torneo con la tecnología de <span class="text-white italic">SportSaaS Pro</span>. Resultados en vivo, tablas automáticas y gestión profesional.
-                  </p>
-              </div>
-
-              <!-- FEATURES MINI GRID -->
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 opacity-60">
-                  <div class="flex flex-col gap-2">
-                      <span class="text-lg">⚡</span>
-                      <span class="text-[9px] font-black uppercase tracking-widest text-white">Fixture Instantáneo</span>
-                  </div>
-                  <div class="flex flex-col gap-2">
-                      <span class="text-lg">📊</span>
-                      <span class="text-[9px] font-black uppercase tracking-widest text-white">Tablas Automatizadas</span>
-                  </div>
-                  <div class="flex flex-col gap-2">
-                      <span class="text-lg">📱</span>
-                      <span class="text-[9px] font-black uppercase tracking-widest text-white">Mobile First UI</span>
-                  </div>
-                  <div class="flex flex-col gap-2">
-                      <span class="text-lg">📢</span>
-                      <span class="text-[9px] font-black uppercase tracking-widest text-white">Share Público</span>
-                  </div>
-              </div>
-
-              <div class="h-px w-full bg-gradient-to-r from-transparent via-white/5 to-transparent mb-10"></div>
-              <p class="text-[8px] font-bold text-slate-600 uppercase tracking-widest">
-                  © ${new Date().getFullYear()} SportSaaS Pro - Software de gestión corporativa de torneos.
-              </p>
-          </div>
-      </footer>
     </div>
   `
 
@@ -71,40 +43,51 @@ export const renderAuth = (container) => {
   const toggleMode = (isRegister = false) => {
     if (isRegister) {
       content.innerHTML = `
-        <form id="registerForm" class="space-y-4">
+        <h2 class="text-2xl font-black italic uppercase tracking-tighter text-white mb-2">Crear Cuenta</h2>
+        <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-8">Empieza a gestionar tu liga hoy</p>
+        
+        <form id="registerForm" class="space-y-5">
           <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Correo Electrónico</label>
-            <input type="email" id="email" required class="form-input" placeholder="ejemplo@email.com">
+            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Correo Electrónico</label>
+            <input type="email" id="email" required class="form-input !bg-slate-800/50" placeholder="ejemplo@email.com">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Contraseña</label>
-            <input type="password" id="password" required class="form-input" placeholder="••••••••">
+            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Contraseña</label>
+            <input type="password" id="password" required class="form-input !bg-slate-800/50" placeholder="••••••••">
           </div>
-          <button type="submit" class="btn-primary w-full h-12 text-lg mt-4">Registrar Cuenta</button>
+          <button type="submit" id="btnAuthSubmit" class="btn-primary w-full h-14 text-xs font-black uppercase tracking-[0.2em] mt-2 shadow-indigo-600/20">Registrarme Ahora</button>
         </form>
       `
       footer.innerHTML = `
-        ¿Ya tienes cuenta? <button id="btnToggleAuth" class="text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-4">Inicia sesión aquí</button>
+        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">
+            ¿Ya tienes cuenta? <button id="btnToggleAuth" class="text-indigo-400 hover:text-indigo-300 transition-colors ml-1">Inicia Sesión</button>
+        </p>
       `
       document.getElementById('registerForm').onsubmit = handleRegister
     } else {
       content.innerHTML = `
-        <form id="loginForm" class="space-y-4">
+        <h2 class="text-2xl font-black italic uppercase tracking-tighter text-white mb-2">Bienvenido</h2>
+        <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-8">Ingresa a tu panel de administración</p>
+        
+        <form id="loginForm" class="space-y-5">
           <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Correo Electrónico</label>
-            <input type="email" name="email" id="email" required class="form-input" placeholder="ejemplo@email.com">
+            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Correo Electrónico</label>
+            <input type="email" name="email" id="email" required class="form-input !bg-slate-800/50" placeholder="ejemplo@email.com">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 text-right">
-                <button type="button" class="text-indigo-400 hover:underline">¿Olvidaste tu contraseña?</button>
-            </label>
-            <input type="password" name="password" id="password" required class="form-input" placeholder="••••••••">
+            <div class="flex justify-between items-center mb-2">
+                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Contraseña</label>
+                <button type="button" class="text-[9px] font-bold text-indigo-400 hover:underline uppercase tracking-widest">¿La olvidaste?</button>
+            </div>
+            <input type="password" name="password" id="password" required class="form-input !bg-slate-800/50" placeholder="••••••••">
           </div>
-          <button type="submit" class="btn-primary w-full h-12 text-lg mt-4">Ingresar al Dashboard</button>
+          <button type="submit" id="btnAuthSubmit" class="btn-primary w-full h-14 text-xs font-black uppercase tracking-[0.2em] mt-2 shadow-indigo-600/20">Entrar al Panel</button>
         </form>
       `
       footer.innerHTML = `
-        ¿Eres nuevo? <button id="btnToggleAuth" class="text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-4">Crea tu cuenta gratis</button>
+        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">
+            ¿Eres nuevo? <button id="btnToggleAuth" class="text-indigo-400 hover:text-indigo-300 transition-colors ml-1">Crea tu cuenta</button>
+        </p>
       `
       document.getElementById('loginForm').onsubmit = handleLogin
     }
@@ -112,17 +95,28 @@ export const renderAuth = (container) => {
 
   const handleLogin = async (e) => {
     e.preventDefault()
+    const btn = document.getElementById('btnAuthSubmit')
     const email = e.target.email.value.trim()
     const password = e.target.password.value.trim()
     
     if(!email || !password) return alert('Completa todos los campos')
 
+    btn.disabled = true
+    btn.innerHTML = '<span class="animate-spin rounded-full h-4 w-4 border-t-2 border-white mr-2 inline-block"></span> Entrando...'
+
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) alert(`Error: ${error.message}`)
+    if (error) {
+        alert("Error: " + error.message)
+        btn.disabled = false
+        btn.innerText = 'Entrar al Panel'
+    } else {
+        window.navigate('dashboard')
+    }
   }
 
   const handleRegister = async (e) => {
     e.preventDefault()
+    const btn = document.getElementById('btnAuthSubmit')
     const email = e.target.email.value.trim()
     const password = e.target.password.value.trim()
 
@@ -130,17 +124,31 @@ export const renderAuth = (container) => {
         return alert('El correo es obligatorio y la clave debe tener al menos 6 caracteres.')
     }
 
-    const { error } = await supabase.auth.signUp({ email, password })
-    if (error) alert(`Error: ${error.message}`)
-    else alert('¡Registro solicitado! Revisa tu correo (o la carpeta de SPAM) para confirmar.')
+    btn.disabled = true
+    btn.innerHTML = '<span class="animate-spin rounded-full h-4 w-4 border-t-2 border-white mr-2 inline-block"></span> Registrando...'
+
+    const { data, error } = await supabase.auth.signUp({ email, password })
+    
+    if (error) {
+        alert("Error: " + error.message)
+        btn.disabled = false
+        btn.innerText = 'Registrarme Ahora'
+    } else {
+        if (data?.session) {
+            window.navigate('dashboard')
+        } else {
+            alert('¡Registro solicitado! Revisa tu correo (o SPAM) para confirmar tu cuenta.')
+            btn.disabled = false
+            btn.innerText = 'Registrarme Ahora'
+        }
+    }
   }
 
-  toggleMode(false) // Iniciar con Login
+  toggleMode(false)
   
-  // Delegación de eventos para el botón de toggle
   footer.addEventListener('click', (e) => {
       if(e.target.id === 'btnToggleAuth') {
-          const isRegistering = footer.innerHTML.includes('tiens cuenta')
+          const isRegistering = footer.innerHTML.includes('Inicia Sesión')
           toggleMode(!isRegistering)
       }
   })

@@ -654,8 +654,8 @@ export const renderPublicTournament = async (container, params) => {
                 </div>
 
                 <!-- CTA BUTTON -->
-                <button onclick="window.location.href='/'" class="group relative px-10 py-5 bg-white text-black font-black uppercase italic text-sm rounded-2xl hover:bg-primary transition-all duration-500 shadow-[0_20px_50px_rgba(255,255,255,0.1)] hover:shadow-primary/20 overflow-hidden mb-16">
-                    <span class="relative z-10">Crea tu Torneo ➔</span>
+                <button onclick="window.navigate('auth')" class="group relative px-10 py-5 bg-white text-black font-black uppercase italic text-sm rounded-2xl hover:bg-primary transition-all duration-500 shadow-[0_20px_50px_rgba(255,255,255,0.1)] hover:shadow-primary/20 overflow-hidden mb-16">
+                    <span class="relative z-10">Crear mi Torneo Profesional Gratis ➔</span>
                     <div class="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
                 </button>
 

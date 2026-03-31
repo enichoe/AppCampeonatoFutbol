@@ -9,15 +9,34 @@ export const renderTournamentDetail = async (container, tournamentId) => {
   let matchesView = 'list'
 
   const loadInitialData = async () => {
-    const { data: t } = await supabase.from('torneos').select('*').eq('id', tournamentId).single()
-    const { data: e } = await supabase.from('equipos').select('*').eq('torneo_id', tournamentId).is('deleted_at', null)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return window.navigate('auth')
+
+    const { data: t, error: tErr } = await supabase
+      .from('torneos')
+      .select('*')
+      .eq('id', tournamentId)
+      .eq('user_id', user.id) // PROTECCIÓN DE PROPIEDAD
+      .single()
+    
+    if (tErr || !t) {
+        console.error("Acceso denegado o torneo no encontrado")
+        return window.navigate('dashboard')
+    }
+
+    const { data: e } = await supabase
+      .from('equipos')
+      .select('*')
+      .eq('torneo_id', tournamentId)
+      .is('deleted_at', null)
+    
     tournament = t
     teams = e
     renderFrame()
   }
 
   const renderFrame = () => {
-    const publicUrl = `${window.location.origin}?t=${tournament.slug}`
+    const publicUrl = `${window.location.origin}/torneo/${tournament.slug}`
 
     container.innerHTML = `
       <div class="space-y-10 fade-in pb-10">
@@ -626,10 +645,12 @@ export const renderTournamentDetail = async (container, tournamentId) => {
         btn.disabled = true; btn.innerText = 'PROCESANDO...'
         
         try {
+            const { data: { user } } = await supabase.auth.getUser()
             let fotoUrl = null
             if (file) fotoUrl = await uploadImage(file, 'jugadores', `${tournamentId}/${teamId}`)
             
             await supabase.from('jugadores').insert([{
+                user_id: user.id, // PROTECCIÓN MULTI-TENANT
                 torneo_id: tournamentId,
                 equipo_id: teamId,
                 nombre: fd.get('nombre'),

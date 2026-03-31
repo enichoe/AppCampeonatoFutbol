@@ -80,8 +80,13 @@ export const renderTeams = async (container) => {
   const modal = document.getElementById('teamModal')
 
   const loadData = async () => {
-    // Cargar torneos para los selectores
-    const { data: torneos } = await supabase.from('torneos').select('id, nombre').is('deleted_at', null)
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    // Cargar torneos PROPIOS para los selectores
+    const { data: torneos } = await supabase.from('torneos')
+        .select('id, nombre')
+        .is('deleted_at', null)
+        .eq('user_id', user.id) // FILTRADO MULTI-TENANT
     
     if (torneos) {
         const options = torneos.map(t => `<option value="${t.id}">${t.nombre}</option>`).join('')
@@ -89,8 +94,11 @@ export const renderTeams = async (container) => {
         select.innerHTML = `<option value="">Selecciona un torneo</option>${options}`
     }
 
-    // Cargar equipos
-    const { data: teams, error } = await supabase.from('equipos').select('*, torneos(nombre)').is('deleted_at', null)
+    // Cargar equipos PROPIOS
+    const { data: teams, error } = await supabase.from('equipos')
+        .select('*, torneos(nombre)')
+        .is('deleted_at', null)
+        .eq('user_id', user.id) // FILTRADO MULTI-TENANT
     
     if (error) return console.error(error)
 

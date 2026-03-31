@@ -18,9 +18,12 @@ export const renderMatches = async (container) => {
   const listContainer = document.getElementById('matchesContainer')
 
   const loadMatches = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    
     const { data, error } = await supabase
       .from('partidos')
-      .select('*, local:equipo_local_id(nombre, escudo_url), visitante:equipo_visitante_id(nombre, escudo_url), torneos(nombre, patrocinadores)')
+      .select('*, local:equipo_local_id(nombre, escudo_url), visitante:equipo_visitante_id(nombre, escudo_url), torneos!inner(nombre, patrocinadores, user_id)')
+      .eq('torneos.user_id', user.id) // FILTRADO MULTI-TENANT
       .order('fase', { ascending: true })
       .order('fecha_hora', { ascending: true })
 
