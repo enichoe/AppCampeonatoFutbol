@@ -56,6 +56,42 @@ export const renderTournamentDetail = async (container, tournamentId) => {
               <!-- El contenido se carga aquí -->
           </div>
       </div>
+    <div id="finalizeModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-xl transition-all duration-300">
+        <div class="w-full max-w-lg card border-indigo-500/30 shadow-[0_0_50px_rgba(79,70,229,0.2)]">
+            <div class="flex justify-between items-center mb-8 pb-4 border-b border-white/5">
+                <div>
+                   <h3 class="text-2xl font-black italic uppercase tracking-tighter text-white">🏆 Clausura Oficial</h3>
+                   <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-none mt-1">Registra al Campeón y la Galería del Torneo</p>
+                </div>
+                <button onclick="document.getElementById('finalizeModal').classList.add('hidden')" class="text-slate-500 hover:text-white text-2xl">&times;</button>
+            </div>
+            
+            <form id="finalizeForm" class="space-y-6">
+                <div>
+                    <label class="text-[10px] font-black italic uppercase tracking-widest text-slate-500 block mb-2">Seleccionar Campeón</label>
+                    <select name="campeon_nombre" class="form-input text-xs" required>
+                        <option value="">Selecciona un equipo...</option>
+                        ${teams.map(e => `<option value="${e.nombre}">${e.nombre}</option>`).join('')}
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${createImageDropzone('final_foto_campeon', 'Foto Celebración', true)}
+                    ${createImageDropzone('final_foto_trofeo', 'Foto Trofeo', true)}
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-black italic uppercase tracking-widest text-slate-500 block mb-2">Dedicatoria / Frase del Torneo</label>
+                    <textarea name="frase_campeon" class="form-input h-20 text-xs" placeholder="Escribe un mensaje para el campeón..."></textarea>
+                </div>
+
+                <div class="pt-4 flex gap-4">
+                    <button type="button" onclick="document.getElementById('finalizeModal').classList.add('hidden')" class="btn-secondary flex-1 py-4 text-xs font-black italic">CANCELAR</button>
+                    <button type="submit" id="btnConfirmFinalize" class="btn-primary flex-1 py-4 bg-emerald-600 hover:bg-emerald-500 text-xs font-black italic">FINALIZAR TORNEO 🏁</button>
+                </div>
+            </form>
+        </div>
+    </div>
     `
 
     // Eventos de Tab
@@ -251,17 +287,33 @@ export const renderTournamentDetail = async (container, tournamentId) => {
 
                     <!-- GALERÍA DEL CAMPEÓN -->
                     ${tournament.estado === 'finalizado' ? `
-                        <div class="card border-indigo-500/30 bg-slate-900 shadow-2xl">
-                            <h4 class="font-black italic text-sm pb-4 mb-6 border-b border-indigo-500/20 uppercase text-indigo-400">🏆 Galería del Campeón</h4>
-                            <form id="campeonForm" class="space-y-6">
-                                ${createImageDropzone('foto_campeon', 'Foto Grupal / Celebración')}
-                                ${createImageDropzone('foto_trofeo', 'Foto del Trofeo')}
-                                <div>
-                                    <label class="text-[10px] font-black italic uppercase tracking-widest text-slate-500">Frase / Dedicatoria</label>
-                                    <textarea name="frase_campeon" class="form-input h-20 text-xs">${tournament.frase_campeon || ''}</textarea>
-                                </div>
-                                <button type="submit" id="btnSaveCampeon" class="btn-primary w-full py-4 text-xs font-black italic uppercase">GUARDAR GALERÍA</button>
-                            </form>
+                        <div class="card border-emerald-500/30 bg-slate-900 shadow-2xl relative overflow-hidden">
+                            <div class="absolute top-0 right-0 p-4 opacity-10">
+                                <svg class="w-24 h-24 text-emerald-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L9 9H1L7 15L4 23L12 18L20 23L17 15L23 9H15L12 1z"></path></svg>
+                            </div>
+                            <h4 class="font-black italic text-sm pb-4 mb-6 border-b border-emerald-500/20 uppercase text-emerald-400">🏆 Salón de la Fama</h4>
+                            
+                            <div class="text-center mb-8 animate-fade-in">
+                                <p class="text-[10px] font-black italic uppercase tracking-widest text-slate-500 mb-1">Campeón Indiscutible</p>
+                                <h2 class="text-4xl font-black italic uppercase tracking-tighter text-white drop-shadow-lg">${tournament.campeon_nombre || 'POR DEFINIR'}</h2>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                                ${tournament.foto_campeon_url ? `
+                                    <div class="rounded-xl overflow-hidden border border-white/5 aspect-video">
+                                        <img src="${tournament.foto_campeon_url}" class="w-full h-full object-cover" alt="Campeón">
+                                    </div>
+                                ` : ''}
+                                ${tournament.foto_trofeo_url ? `
+                                    <div class="rounded-xl overflow-hidden border border-white/5 aspect-video">
+                                        <img src="${tournament.foto_trofeo_url}" class="w-full h-full object-cover" alt="Trofeo">
+                                    </div>
+                                ` : ''}
+                            </div>
+
+                            <div class="p-6 bg-slate-800/40 rounded-2xl border border-white/5 italic text-center text-slate-300 text-sm">
+                                "${tournament.frase_campeon || 'Un torneo inolvidable.'}"
+                            </div>
                         </div>
                     ` : ''}
                 </div>
@@ -269,46 +321,6 @@ export const renderTournamentDetail = async (container, tournamentId) => {
         </div>
     `
     
-    const scheduleBtn = document.getElementById('btnGoSchedule')
-    const scheduleBtnMini = document.getElementById('btnGoScheduleMini')
-    const navToPartidos = () => { activeTab = 'partidos'; renderFrame(); }
-    if (scheduleBtn) scheduleBtn.onclick = navToPartidos
-    if (scheduleBtnMini) scheduleBtnMini.onclick = navToPartidos
-    if (faseActual === 'final' && faseActualFinalizada) {
-        setupDropzone('foto_campeon')
-        setupDropzone('foto_trofeo')
-        
-        const form = document.getElementById('campeonForm')
-        form.onsubmit = async (e) => {
-            e.preventDefault()
-            const btn = document.getElementById('btnSaveCampeon')
-            btn.disabled = true; btn.innerText = 'SUBIENDO IMÁGENES...'
-            
-            try {
-                const fotoFile = document.getElementById('input-foto_campeon').files[0]
-                const trofeoFile = document.getElementById('input-foto_trofeo').files[0]
-                const frase = new FormData(e.target).get('frase_campeon')
-                
-                let fotoUrl = tournament.foto_campeon_url
-                let trofeoUrl = tournament.foto_trofeo_url
-                
-                if (fotoFile) fotoUrl = await uploadImage(fotoFile, 'torneos', `campeon/${tournamentId}`)
-                if (trofeoFile) trofeoUrl = await uploadImage(trofeoFile, 'torneos', `campeon/${tournamentId}`)
-                
-                await supabase.from('torneos').update({
-                    foto_campeon_url: fotoUrl,
-                    foto_trofeo_url: trofeoUrl,
-                    frase_campeon: frase
-                }).eq('id', tournamentId)
-                
-                alert('¡Galería del Campeón actualizada!')
-                loadInitialData()
-            } catch (err) {
-                alert('Error al subir: ' + err.message)
-                btn.disabled = false; btn.innerText = 'GUARDAR GALERÍA'
-            }
-        }
-    }
     
     if(tournament.estado !== 'configuracion') {
         const { data: grupos } = await supabase.from('grupos').select('*').eq('torneo_id', tournamentId).order('nombre')
@@ -372,10 +384,62 @@ export const renderTournamentDetail = async (container, tournamentId) => {
     assignClick('btnFixtureFlow', () => engine.generarFixture(tournamentId))
     assignClick('btnGenerarEliminatoria', () => engine.generarEliminatoria(tournamentId))
     assignClick('btnAvanzarFase', () => engine.avanzarFase(tournamentId))
-    assignClick('btnFinalizarTorneo', async () => {
-        if(!confirm('¿Finalizar torneo? Ya no se podrán modificar resultados.')) return
-        await supabase.from('torneos').update({ estado: 'finalizado' }).eq('id', tournamentId)
-    })
+    const scheduleBtn = document.getElementById('btnGoSchedule')
+    const scheduleBtnMini = document.getElementById('btnGoScheduleMini')
+    const navToPartidos = () => { activeTab = 'partidos'; renderFrame(); }
+    if (scheduleBtn) scheduleBtn.onclick = navToPartidos
+    if (scheduleBtnMini) scheduleBtnMini.onclick = navToPartidos
+
+    const btnFinalizar = document.getElementById('btnFinalizarTorneo')
+    if (btnFinalizar) {
+        btnFinalizar.onclick = () => {
+            const modal = document.getElementById('finalizeModal')
+            if (modal) {
+                modal.classList.remove('hidden')
+                setupDropzone('final_foto_campeon')
+                setupDropzone('final_foto_trofeo')
+
+                const finalForm = document.getElementById('finalizeForm')
+                if (finalForm) {
+                    finalForm.onsubmit = async (e) => {
+                        e.preventDefault()
+                        const btnSubmit = document.getElementById('btnConfirmFinalize')
+                        btnSubmit.disabled = true; btnSubmit.innerText = 'CERRANDO TORNEO...'
+                        
+                        try {
+                            const fd = new FormData(e.target)
+                            const fotoFile = document.getElementById('input-final_foto_campeon').files[0]
+                            const trofeoFile = document.getElementById('input-final_foto_trofeo').files[0]
+                            
+                            let fotoUrl = null
+                            let trofeoUrl = null
+                            
+                            if (fotoFile) fotoUrl = await uploadImage(fotoFile, 'torneos', `campeon/${tournamentId}`)
+                            if (trofeoFile) trofeoUrl = await uploadImage(trofeoFile, 'torneos', `campeon/${tournamentId}`)
+                            
+                            const { error } = await supabase.from('torneos').update({
+                                estado: 'finalizado',
+                                campeon_nombre: fd.get('campeon_nombre'),
+                                foto_campeon_url: fotoUrl,
+                                foto_trofeo_url: trofeoUrl,
+                                frase_campeon: fd.get('frase_campeon'),
+                                finalizado_at: new Date().toISOString()
+                            }).eq('id', tournamentId)
+
+                            if (error) throw error
+                            
+                            alert('¡Torneo finalizado con éxito! El campeón ha sido coronado.')
+                            modal.classList.add('hidden')
+                            loadInitialData()
+                        } catch (err) {
+                            alert('Error al finalizar: ' + err.message)
+                            btnSubmit.disabled = false; btnSubmit.innerText = 'FINALIZAR TORNEO 🏁'
+                        }
+                    }
+                }
+            }
+        }
+    }
   }
 
 
@@ -887,83 +951,175 @@ export const renderTournamentDetail = async (container, tournamentId) => {
   }
 
   const renderMatchStats = async (matchId) => {
-    const { data: m } = await supabase.from('partidos').select('*, h:equipo_local_id(*), a:equipo_visitante_id(*)').eq('id', matchId).single()
-    const { data: playersL } = await supabase.from('jugadores').select('*').eq('equipo_id', m.h.id)
-    const { data: playersV } = await supabase.from('jugadores').select('*').eq('equipo_id', m.a.id)
+    // Sintaxis correcta: alias:tabla!columna_fk(campos)
+    const { data: m, error: mErr } = await supabase
+        .from('partidos')
+        .select('*, h:equipos!equipo_local_id(id, nombre, escudo_url), a:equipos!equipo_visitante_id(id, nombre, escudo_url)')
+        .eq('id', matchId)
+        .single()
+
+    if (mErr || !m) {
+        alert('No se pudo cargar el partido: ' + (mErr?.message || 'Error desconocido'))
+        return
+    }
+
+    // Carga jugadores de ambos equipos en paralelo
+    const [{ data: playersL }, { data: playersV }] = await Promise.all([
+        supabase.from('jugadores').select('id, nombre, dorsal, posicion').eq('equipo_id', m.h.id).order('dorsal'),
+        supabase.from('jugadores').select('id, nombre, dorsal, posicion').eq('equipo_id', m.a.id).order('dorsal')
+    ])
 
     const modal = document.createElement('div')
-    modal.className = 'fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-md'
+    modal.className = 'fixed inset-0 z-[300] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-md'
     modal.innerHTML = `
-        <div class="card w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-            <div class="flex items-center justify-between mb-8">
-                <h3 class="text-xl font-black">Incidencias: ${m.h.nombre} vs ${m.a.nombre}</h3>
-                <button id="closeStats" class="text-slate-500 hover:text-white">&times;</button>
+        <div class="card w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border-white/10">
+            <div class="flex items-center justify-between mb-6 shrink-0">
+                <div>
+                    <h3 class="text-xl font-black italic uppercase tracking-tighter">⚽ Incidencias</h3>
+                    <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mt-1">${m.h?.nombre || '???'} vs ${m.a?.nombre || '???'}</p>
+                </div>
+                <button id="closeStats" class="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-full text-xl text-slate-400 hover:text-white transition-all">&times;</button>
             </div>
             
-            <div class="flex-1 overflow-y-auto pr-2 space-y-8">
-                <div>
-                   <h4 class="text-xs font-black uppercase text-indigo-400 mb-4 tracking-widest">Registrar Evento</h4>
-                   <form id="eventForm" class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-900 p-4 rounded-2xl border border-slate-800">
-                        <select name="type" class="form-input text-xs">
-                            <option value="gol">Gol</option>
-                            <option value="amarilla">Amarilla</option>
-                            <option value="roja">Roja</option>
-                            <option value="mvp">MVP</option>
-                        </select>
-                        <select name="team" class="form-input text-xs" id="teamEventSelect">
-                            <option value="${m.h.id}">${m.h.nombre}</option>
-                            <option value="${m.a.id}">${m.a.nombre}</option>
-                        </select>
-                        <select name="player" class="form-input text-xs" id="playerEventSelect"></select>
-                        <button class="btn-primary py-2 text-xs font-black uppercase">Añadir</button>
-                   </form>
+            <div class="flex-1 overflow-y-auto pr-1 space-y-6">
+                <!-- FORMULARIO DE EVENTO -->
+                <div class="bg-slate-900/80 p-4 rounded-2xl border border-white/5">
+                    <h4 class="text-[10px] font-black uppercase text-indigo-400 mb-4 tracking-widest">Registrar Evento</h4>
+                    <form id="eventForm" class="space-y-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">Tipo</label>
+                                <select name="type" class="form-input text-xs w-full">
+                                    <option value="gol">⚽ Gol</option>
+                                    <option value="amarilla">🟡 Amarilla</option>
+                                    <option value="roja">🔴 Roja</option>
+                                    <option value="mvp">⭐ MVP</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">Equipo</label>
+                                <select name="team" class="form-input text-xs w-full" id="teamEventSelect">
+                                    <option value="${m.h.id}">${m.h.nombre}</option>
+                                    <option value="${m.a.id}">${m.a.nombre}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">Jugador</label>
+                            <select name="player" class="form-input text-xs w-full" id="playerEventSelect">
+                                ${(playersL || []).length === 0 
+                                    ? '<option value="">Sin jugadores registrados</option>'
+                                    : (playersL || []).map(p => `<option value="${p.id}">#${p.dorsal || '--'} ${p.nombre}</option>`).join('')
+                                }
+                            </select>
+                        </div>
+                        <button type="submit" id="btnAddEvent" class="btn-primary w-full py-2.5 text-[11px] font-black uppercase tracking-widest">
+                            Registrar Evento ➔
+                        </button>
+                    </form>
                 </div>
-                <div id="eventLog" class="space-y-2">Cargando eventos...</div>
+
+                <!-- LOG DE EVENTOS -->
+                <div>
+                    <h4 class="text-[10px] font-black uppercase text-slate-500 mb-3 tracking-widest">Historial de Eventos</h4>
+                    <div id="eventLog" class="space-y-2">
+                        <div class="py-6 text-center"><div class="animate-spin rounded-full h-6 w-6 border-t-2 border-indigo-500 mx-auto"></div></div>
+                    </div>
+                </div>
             </div>
         </div>
     `
     document.body.appendChild(modal)
 
+    // Actualizar lista de jugadores al cambiar equipo
     const pSelect = modal.querySelector('#playerEventSelect')
     const tSelect = modal.querySelector('#teamEventSelect')
-    const updatePlayers = (id) => {
-        const list = id === m.h.id ? playersL : playersV
-        pSelect.innerHTML = list.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('')
+    
+    const updatePlayers = (teamId) => {
+        const list = teamId === m.h.id ? (playersL || []) : (playersV || [])
+        if (list.length === 0) {
+            pSelect.innerHTML = '<option value="">Sin jugadores en este equipo</option>'
+        } else {
+            pSelect.innerHTML = list.map(p => `<option value="${p.id}">#${p.dorsal || '--'} ${p.nombre}</option>`).join('')
+        }
     }
+    
     tSelect.onchange = (e) => updatePlayers(e.target.value)
-    updatePlayers(m.h.id)
+    updatePlayers(m.h.id) // Carga inicial con equipo local
 
+    // Cargar eventos registrados
     const loadEvents = async () => {
-        const { data: events } = await supabase.from('eventos_partido').select('*, jugadores(nombre), equipos(nombre)').eq('partido_id', matchId)
-        modal.querySelector('#eventLog').innerHTML = events.length ? events.map(e => `
-            <div class="p-3 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between text-xs font-bold text-slate-300">
-                <span>[${e.tipo.toUpperCase()}] ${e.jugadores?.nombre} (${e.equipos?.nombre})</span>
-                <button class="text-red-500 btn-del-event" data-id="${e.id}">&times;</button>
-            </div>
-        `).join('') : '<p class="text-center text-slate-700 py-10">No hay eventos.</p>'
+        const { data: events, error: evErr } = await supabase
+            .from('eventos_partido')
+            .select('*, jugadores(nombre), equipos(nombre)')
+            .eq('partido_id', matchId)
+            .order('created_at', { ascending: false })
+
+        if (evErr) {
+            modal.querySelector('#eventLog').innerHTML = `<p class="text-center py-6 text-red-400 text-xs">Error cargando eventos: ${evErr.message}</p>`
+            return
+        }
+
+        modal.querySelector('#eventLog').innerHTML = events && events.length 
+            ? events.map(e => `
+                <div class="flex items-center justify-between p-3 bg-white/3 border border-white/5 rounded-xl text-xs">
+                    <div class="flex items-center gap-3">
+                        <span class="text-lg">${e.tipo === 'gol' ? '⚽' : e.tipo === 'amarilla' ? '🟡' : e.tipo === 'roja' ? '🔴' : '⭐'}</span>
+                        <div>
+                            <p class="font-black text-white uppercase">${e.jugadores?.nombre || 'Jugador'}</p>
+                            <p class="text-[9px] text-slate-500 font-bold uppercase">${e.equipos?.nombre || '-'} • ${e.tipo.toUpperCase()}</p>
+                        </div>
+                    </div>
+                    <button class="w-7 h-7 flex items-center justify-center bg-red-500/10 hover:bg-red-500/30 text-red-400 rounded-lg transition-all btn-del-event" data-id="${e.id}">&times;</button>
+                </div>
+            `).join('')
+            : '<p class="text-center py-10 text-slate-700 text-[11px] font-black uppercase italic tracking-widest">No hay eventos registrados</p>'
         
         modal.querySelectorAll('.btn-del-event').forEach(btn => {
            btn.onclick = async () => {
-               await supabase.from('eventos_partido').delete().eq('id', btn.dataset.id)
-               loadEvents()
+               const { error } = await supabase.from('eventos_partido').delete().eq('id', btn.dataset.id)
+               if (error) alert('Error al eliminar: ' + error.message)
+               else loadEvents()
            }
         })
     }
 
+    // Submit del formulario
     modal.querySelector('#eventForm').onsubmit = async (e) => {
         e.preventDefault()
+        const btn = modal.querySelector('#btnAddEvent')
         const fd = new FormData(e.target)
-        await supabase.from('eventos_partido').insert([{
+        const jugadorId = fd.get('player')
+        const equipoId = fd.get('team')
+        
+        if (!jugadorId) {
+            alert('Selecciona un jugador primero.')
+            return
+        }
+        
+        btn.disabled = true; btn.innerText = 'REGISTRANDO...'
+        
+        const { error } = await supabase.from('eventos_partido').insert([{
             partido_id: matchId,
-            equipo_id: fd.get('team'),
-            jugador_id: fd.get('player'),
+            equipo_id: equipoId,
+            jugador_id: jugadorId,
             tipo: fd.get('type')
         }])
+        
+        btn.disabled = false; btn.innerText = 'Registrar Evento ➔'
+        
+        if (error) {
+            alert('Error al registrar evento: ' + error.message)
+            return
+        }
         loadEvents()
     }
+    
     modal.querySelector('#closeStats').onclick = () => modal.remove()
+    modal.onclick = (e) => { if (e.target === modal) modal.remove() }
     loadEvents()
   }
+
 
   const renderScheduleModal = async (matchId) => {
     const { data: m } = await supabase.from('partidos').select('*, h:equipo_local_id(nombre), a:equipo_visitante_id(nombre)').eq('id', matchId).single()
@@ -1065,27 +1221,29 @@ export const renderTournamentDetail = async (container, tournamentId) => {
     modal.querySelector('#scheduleForm').onsubmit = async (e) => {
         e.preventDefault()
         const btn = modal.querySelector('#btnSaveSchedule')
-        const cSelect = modal.querySelector('#campoSelect')
-        cSelect.disabled = false // Asegurar que FormData lo incluya
+        const campoSel = modal.querySelector('#campoSelect')
+        campoSel.disabled = false // Asegurar que FormData lo incluya
         const fd = new FormData(e.target)
         
         btn.disabled = true; btn.innerText = 'GUARDANDO...'
         
         const dataToUpdate = {
             fecha_hora: fd.get('fecha_hora') ? new Date(fd.get('fecha_hora')).toISOString() : null,
-            campo_id: modal.querySelector('#campoSelect').value || null,
+            campo_id: campoSel.value || null,
             arbitro_id: fd.get('arbitro_id') || null,
             notas: fd.get('notas')
         }
 
-        try {
-            await supabase.from('partidos').update(dataToUpdate).eq('id', matchId)
-            modal.remove()
-            renderTabContent()
-        } catch (err) {
-            alert(err.message)
+        const { error } = await supabase.from('partidos').update(dataToUpdate).eq('id', matchId)
+        
+        if (error) {
+            alert('Error al guardar: ' + error.message)
             btn.disabled = false; btn.innerText = 'GUARDAR PROGRAMACIÓN'
+            return
         }
+        
+        modal.remove()
+        renderTabContent()
     }
 
     const closeModal = () => modal.remove()

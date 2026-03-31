@@ -13,27 +13,150 @@ export const renderPublicTournament = async (container, params) => {
         }
         torneo = t
 
-        const [{ data: g }, { data: tab }, { data: p }, { data: eq }, { data: ev }, { data: j }] = await Promise.all([
-            supabase.from('grupos').select('*').eq('torneo_id', torneo.id).is('deleted_at', null),
+        const [{ data: g }, { data: tab }, { data: p }, { data: eq }, { data: j }] = await Promise.all([
+            supabase.from('grupos').select('*').eq('torneo_id', torneo.id),
             supabase.from('tabla_posiciones').select('*, equipos(nombre, escudo_url)').eq('torneo_id', torneo.id),
-            supabase.from('partidos').select('*').eq('torneo_id', torneo.id).is('deleted_at', null),
+            supabase.from('partidos')
+                .select(`*,
+                    h:equipos!equipo_local_id(nombre, escudo_url),
+                    a:equipos!equipo_visitante_id(nombre, escudo_url),
+                    campo:campos!campo_id(nombre, sede:sedes!sede_id(nombre)),
+                    arbitro:arbitros!arbitro_id(nombre)`)
+                .eq('torneo_id', torneo.id)
+                .order('fecha_hora', { ascending: false, nullsLast: true }),
             supabase.from('equipos').select('*').eq('torneo_id', torneo.id).is('deleted_at', null),
-            supabase.from('eventos').select('*').eq('torneo_id', torneo.id),
-            supabase.from('jugadores').select('*').eq('torneo_id', torneo.id)
+            supabase.from('jugadores').select('*, equipos(nombre)').eq('torneo_id', torneo.id)
         ])
 
         grupos = g || []
         tabla = tab || []
         partidos = p || []
         equipos = eq || []
-        eventos = ev || []
         jugadores = j || []
+
+        // Cargar eventos_partido ahora que tenemos los IDs de partidos
+        const partidoIds = partidos.map(p => p.id)
+        if (partidoIds.length > 0) {
+            const { data: evData } = await supabase
+                .from('eventos_partido')
+                .select('*, jugadores(nombre, equipo_id, equipos(nombre))')
+                .in('partido_id', partidoIds)
+            eventos = evData || []
+        }
     } catch (err) {
         console.error('Error cargando datos públicos del torneo', err)
         container.innerHTML = `<div class="p-8 text-center text-red-500">Error cargando datos del torneo.</div>`
         return
     }
 
+    // --- Procesamiento de Datos y Helpers (Fuera del try para scope global en el render) ---
+    
+    // Índice de eventos por partido_id
+    const eventosPorPartido = {}
+    eventos.forEach(ev => {
+        if (!eventosPorPartido[ev.partido_id]) eventosPorPartido[ev.partido_id] = []
+        eventosPorPartido[ev.partido_id].push(ev)
+    })
+
+    // HELPER: Renderiza una card de partido profesional (usado en Partidos y Posiciones)
+    const renderPublicMatchCard = (m) => {
+        const showScore = m.estado === 'en_juego' || m.estado === 'finalizado'
+        const hour = m.fecha_hora ? new Date(m.fecha_hora).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '--:--'
+        const evs = eventosPorPartido[m.id] || []
+        const golesL = evs.filter(e => e.tipo === 'gol' && e.jugadores?.equipo_id === m.equipo_local_id)
+        const golesA = evs.filter(e => e.tipo === 'gol' && e.jugadores?.equipo_id === m.equipo_visitante_id)
+        const amarillasL = evs.filter(e => e.tipo === 'amarilla' && e.jugadores?.equipo_id === m.equipo_local_id)
+        const amarillasA = evs.filter(e => e.tipo === 'amarilla' && e.jugadores?.equipo_id === m.equipo_visitante_id)
+        const rojasL = evs.filter(e => e.tipo === 'roja' && e.jugadores?.equipo_id === m.equipo_local_id)
+        const rojasA = evs.filter(e => e.tipo === 'roja' && e.jugadores?.equipo_id === m.equipo_visitante_id)
+
+        const renderEventBadges = (list, icon) => list.map(e => `
+            <span class="inline-flex items-center gap-1 text-[9px] font-bold text-slate-400">
+                ${icon} <span>${e.jugadores?.nombre?.split(' ')[0] || ''}</span>
+            </span>
+        `).join('')
+
+        const hasVenue = m.campo?.nombre || m.campo?.sede?.nombre
+        const hasRef = m.arbitro?.nombre
+
+        return `
+        <div class="match-card animate-fade">
+            <div class="m-meta">
+                <span class="m-status ${m.estado === 'en_juego' ? 'live' : m.estado === 'finalizado' ? 'done' : ''}">
+                    ${m.estado === 'en_juego' ? '● EN VIVO' : m.estado === 'finalizado' ? '✓ FINALIZADO' : '○ PROGRAMADO'}
+                </span>
+                <span style="color:var(--text-muted);font-size:11px;font-weight:900">${hour} hrs</span>
+            </div>
+            <div class="m-grid">
+                <div class="m-team">
+                    <img src="${m.h?.escudo_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(m.h?.nombre||'?')}" loading="lazy">
+                    <span>${m.h?.nombre || 'TBD'}</span>
+                    ${showScore ? `<div class="m-incidents">${renderEventBadges(golesL,'⚽')}${renderEventBadges(amarillasL,'🟡')}${renderEventBadges(rojasL,'🔴')}</div>` : ''}
+                </div>
+                <div class="m-score-btn">
+                    ${showScore ? `${m.goles_local ?? 0} - ${m.goles_visitante ?? 0}` : `<span class="m-vs">VS</span>`}
+                </div>
+                <div class="m-team">
+                    <img src="${m.a?.escudo_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(m.a?.nombre||'?')}" loading="lazy">
+                    <span>${m.a?.nombre || 'TBD'}</span>
+                    ${showScore ? `<div class="m-incidents">${renderEventBadges(golesA,'⚽')}${renderEventBadges(amarillasA,'🟡')}${renderEventBadges(rojasA,'🔴')}</div>` : ''}
+                </div>
+            </div>
+            <div class="m-footer" style="flex-direction:column;gap:6px;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <span style="font-size:11px;">📍</span>
+                    <span style="color:${hasVenue ? '#e2e8f0' : 'var(--text-muted)'}">
+                        ${hasVenue ? `${m.campo.sede?.nombre ? m.campo.sede.nombre + ' — ' : ''}${m.campo.nombre}` : 'Sede por confirmar'}
+                    </span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <span style="font-size:11px;">👨⚖️</span>
+                    <span style="color:${hasRef ? '#e2e8f0' : 'var(--text-muted)'}">
+                        ${hasRef ? m.arbitro.nombre : 'Árbitro por confirmar'}
+                    </span>
+                </div>
+            </div>
+        </div>
+        `
+    }
+
+    const renderKnockoutPhases = (partidos) => {
+        const koPhases = ['final', 'semifinal', 'semifinales', 'cuartos', 'octavos']
+        const matches = (partidos || []).filter(p => p.fase && koPhases.includes(p.fase.toLowerCase()))
+        if (matches.length === 0) return ''
+
+        const grouped = {}
+        matches.forEach(p => {
+            let f = p.fase.toUpperCase()
+            // Normalizar nombres para la vista
+            if (f === 'FINAL') f = 'GRAN FINAL'
+            if (f === 'SEMIFINAL' || f === 'SEMIFINALES') f = 'SEMIFINALES'
+            if (f === 'CUARTOS') f = 'CUARTOS DE FINAL'
+            if (f === 'OCTAVOS') f = 'OCTAVOS DE FINAL'
+
+            if (!grouped[f]) grouped[f] = []
+            grouped[f].push(p)
+        })
+
+        const order = ['OCTAVOS DE FINAL', 'CUARTOS DE FINAL', 'SEMIFINALES', 'GRAN FINAL']
+        const sortedFases = Object.keys(grouped).sort((a,b) => order.indexOf(a) - order.indexOf(b))
+
+        return sortedFases.map(fase => `
+            <div class="group-header mt-14 mb-6 bg-white/5 p-4 rounded-2xl border border-white/5 backdrop-blur-md">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_rgba(0,255,135,0.8)]"></div>
+                        <span class="text-white font-black tracking-[0.2em] text-xs italic uppercase">${fase}</span>
+                    </div>
+                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">${grouped[fase].length} PARTIDO${grouped[fase].length > 1 ? 'S' : ''}</span>
+                </div>
+                <div class="h-px bg-gradient-to-r from-primary/30 to-transparent mt-3"></div>
+            </div>
+            <div class="px-2 space-y-4">
+                ${grouped[fase].map(m => renderPublicMatchCard(m)).join('')}
+            </div>
+        `).join('')
+    }
     // UI RENDER
     container.innerHTML = `
     <style>
@@ -329,6 +452,86 @@ export const renderPublicTournament = async (container, params) => {
             border-radius: 16px;
             margin-bottom: 8px;
         }
+
+        /* ===== DATE DIVIDER ===== */
+        .date-divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 36px 16px 16px;
+        }
+        .date-pill {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 10px 18px;
+            white-space: nowrap;
+            backdrop-filter: blur(10px);
+        }
+        .date-day {
+            font-size: 28px;
+            font-weight: 900;
+            font-style: italic;
+            color: var(--primary);
+            line-height: 1;
+        }
+        .date-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .date-weekday {
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #fff;
+        }
+        .date-month {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--text-muted);
+        }
+        .date-count {
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            background: rgba(255,255,255,0.05);
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.07);
+        }
+        .date-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, rgba(255,255,255,0.08), transparent);
+        }
+
+        /* ===== MATCH INCIDENTS ===== */
+        .m-incidents {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+        .m-status.done {
+            background: rgba(16,185,129,0.1);
+            color: #10b981;
+            border: 1px solid rgba(16,185,129,0.2);
+        }
     </style>
 
     <div class="tournament-app">
@@ -337,6 +540,39 @@ export const renderPublicTournament = async (container, params) => {
             <h1 class="text-3xl font-black italic uppercase tracking-tighter leading-none">${torneo.nombre}</h1>
             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-3">${torneo.tipo === 'liga' ? 'Liga Profesional' : 'Torneo de Copa'}</p>
         </header>
+
+        ${torneo.estado === 'finalizado' ? `
+            <div class="champion-banner p-8 bg-gradient-to-br from-[#FFD700] via-[#FDB931] to-[#D4AF37] rounded-[40px] mx-6 my-10 shadow-[0_20px_60px_rgba(212,175,55,0.4)] relative overflow-hidden flex flex-col items-center gap-6 border-4 border-white/30 animate-pulse-slow">
+                <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
+                <div class="absolute top-0 right-0 p-4 opacity-10">
+                    <svg class="w-40 h-40 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L9 9H1L7 15L4 23L12 18L20 23L17 15L23 9H15L12 1z"></path></svg>
+                </div>
+                
+                <div class="z-10 text-center">
+                   <div class="inline-flex items-center gap-2 bg-black/10 px-4 py-1 rounded-full mb-4">
+                        <span class="text-[9px] font-black text-yellow-900 uppercase tracking-[0.4em] italic">🏆 Campéon Oficial</span>
+                   </div>
+                   <h2 class="text-5xl font-black text-yellow-950 italic tracking-tighter uppercase drop-shadow-sm">${torneo.campeon_nombre || 'POR DEFINIR'}</h2>
+                </div>
+
+                <div class="z-10 flex gap-4 w-full justify-center">
+                   ${torneo.foto_campeon_url ? `
+                   <div class="w-1/2 aspect-video rounded-3xl overflow-hidden border-4 border-white/50 shadow-2xl skew-x-[-2deg]">
+                        <img src="${torneo.foto_campeon_url}" class="w-full h-full object-cover">
+                   </div>` : ''}
+                   ${torneo.foto_trofeo_url ? `
+                   <div class="w-1/2 aspect-video rounded-3xl overflow-hidden border-4 border-white/50 shadow-2xl skew-x-[2deg]">
+                        <img src="${torneo.foto_trofeo_url}" class="w-full h-full object-cover">
+                   </div>` : ''}
+                </div>
+
+                <p class="z-10 text-xs font-black italic text-yellow-950/60 uppercase tracking-widest text-center px-6 leading-relaxed">
+                    "${torneo.frase_campeon || '¡Historia escrita en la cancha!'}"
+                </p>
+                
+                <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-white/20 rounded-full blur-3xl"></div>
+            </div>
+        ` : ''}
 
         <nav class="sticky-nav">
             <div class="segmented-control">
@@ -351,10 +587,16 @@ export const renderPublicTournament = async (container, params) => {
             <!-- SECCIÓN POSICIONES -->
             <section id="section-posiciones" class="tab-content animate-fade">
                 <div class="standings-wrap">
-                    <div class="table-row table-header">
-                        <span>#</span><span></span><span>Club</span><span>PJ</span><span>DG</span><span class="text-center">Pts</span>
-                    </div>
                     ${renderPosicionesProfessional(grupos, tabla)}
+                </div>
+                
+                <div class="knockout-wrap px-4 pb-16">
+                    ${partidos.some(p => p.fase && ['final', 'semifinal', 'semifinales', 'cuartos', 'octavos'].includes(p.fase.toLowerCase())) ? `
+                        <div class="mt-8 mb-2 px-2">
+                            <h2 class="text-[10px] font-black uppercase tracking-[0.4em] text-primary/50 italic text-center">Fases de Eliminación Directa</h2>
+                        </div>
+                    ` : ''}
+                    ${renderKnockoutPhases(partidos)}
                 </div>
                 
                 <!-- Auspiciadores en Posiciones (dinámicos) -->
@@ -370,7 +612,7 @@ export const renderPublicTournament = async (container, params) => {
 
             <!-- SECCIÓN PARTIDOS -->
             <section id="section-partidos" class="tab-content hidden animate-fade">
-                ${renderPartidosProfessional(partidos)}
+                ${renderPartidosProfessional(partidos, eventos)}
                 
                 <div class="p-10 text-center">
                     <div class="sponsors-title">Partner Tecnológico</div>
@@ -421,29 +663,46 @@ export const renderPublicTournament = async (container, params) => {
     const modalContent = document.getElementById('modal-content')
 
     function renderPosicionesProfessional(grupos, tabla) {
+        // DEBUG: log para diagnosticar datos
+        console.log('[Posiciones] grupos:', grupos.length, grupos.map(g => ({id: g.id, nombre: g.nombre})))
+        console.log('[Posiciones] tabla:', tabla.length, tabla.map(t => ({equipo: t.equipos?.nombre, grupo_id: t.grupo_id, pts: t.pts})))
+
+        const tableHeader = `
+            <div class="table-row table-header">
+                <span>#</span><span></span><span>Club</span><span>PJ</span><span>DG</span><span class="text-center">Pts</span>
+            </div>
+        `
+
         const renderRow = (r, i) => `
             <div class="table-row">
                 <span class="st-pos">${(i + 1).toString().padStart(2, '0')}</span>
-                <img src="${r.equipos?.escudo_url || 'https://ui-avatars.com/api/?name='+r.equipos?.nombre}" class="st-logo" loading="lazy">
-                <span class="st-name">${r.equipos?.nombre}</span>
-                <span class="st-val text-slate-400">${r.pj}</span>
-                <span class="st-val text-slate-400">${r.dg > 0 ? '+' : ''}${r.dg}</span>
-                <span class="st-val st-pts">${r.pts}</span>
+                <img src="${r.equipos?.escudo_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(r.equipos?.nombre || '?')}" class="st-logo" loading="lazy">
+                <span class="st-name">${r.equipos?.nombre || 'Equipo'}</span>
+                <span class="st-val text-slate-400">${r.pj ?? 0}</span>
+                <span class="st-val text-slate-400">${(r.dg ?? 0) > 0 ? '+' : ''}${r.dg ?? 0}</span>
+                <span class="st-val st-pts">${r.pts ?? 0}</span>
             </div>
         `
 
         if (!grupos || grupos.length === 0) {
-            return tabla.sort((a,b) => b.pts - a.pts || b.dg - a.dg).map((r, i) => renderRow(r, i)).join('')
+            // Sin grupos: tabla única con header
+            return tableHeader + tabla.sort((a,b) => b.pts - a.pts || b.dg - a.dg).map((r, i) => renderRow(r, i)).join('')
         }
 
+        // Con grupos: una tabla por grupo, cada una con su propio header
         return grupos.map(g => {
             const tableGrp = tabla.filter(t => t.grupo_id === g.id).sort((a,b) => b.pts - a.pts || b.dg - a.dg)
+            console.log(`[Grupo ${g.nombre}] equipos en tabla:`, tableGrp.length)
             return `
-                <div class="group-header">
+                <div class="group-header" style="margin-top: 28px;">
                     <span>${g.nombre}</span>
                     <div class="line"></div>
                 </div>
-                ${tableGrp.map((r, i) => renderRow(r, i)).join('')}
+                ${tableHeader}
+                ${tableGrp.length > 0
+                    ? tableGrp.map((r, i) => renderRow(r, i)).join('')
+                    : `<div class="py-4 text-center text-xs text-slate-600 font-bold uppercase tracking-widest">Sin equipos asignados</div>`
+                }
             `
         }).join('')
     }
@@ -453,118 +712,178 @@ export const renderPublicTournament = async (container, params) => {
             return `<div class="py-20 text-center opacity-20 font-black italic uppercase tracking-widest">No hay partidos programados</div>`
         }
 
-        // Agrupar por fase y luego por fecha
-        const phases = {}
-        partidos.forEach(p => {
-            const phase = p.fase || 'TEMPORADA REGULAR'
-            if (!phases[phase]) phases[phase] = []
-            phases[phase].push(p)
+        const phasesOrder = ['final', 'semifinales', 'semifinal', 'cuartos', 'octavos', 'grupos']
+        const phaseNames = {
+            'final': 'Gran Final 🏆',
+            'semifinales': 'Semifinales',
+            'semifinal': 'Semifinales',
+            'cuartos': 'Cuartos de Final',
+            'octavos': 'Octavos de Final',
+            'grupos': 'Fase de Grupos'
+        }
+
+        // Primero agrupamos por fase
+        const porFase = {}
+        partidos.forEach(m => {
+            const fase = (m.fase || 'grupos').toLowerCase()
+            if (!porFase[fase]) porFase[fase] = []
+            porFase[fase].push(m)
+        })
+
+        // Orden de fases (descendente según el flow del torneo)
+        const fasesExistentes = Object.keys(porFase).sort((a, b) => {
+            return phasesOrder.indexOf(a) - phasesOrder.indexOf(b)
         })
 
         let html = ''
-        
-        // Orden de fases preferido
-        const phaseOrder = ['FASE DE GRUPOS', 'OCTAVOS', 'CUARTOS', 'SEMIFINAL', 'FINAL']
-        const sortedPhases = Object.keys(phases).sort((a, b) => {
-            const idxA = phaseOrder.indexOf(a.toUpperCase())
-            const idxB = phaseOrder.indexOf(b.toUpperCase())
-            if (idxA === -1 && idxB === -1) return a.localeCompare(b)
-            if (idxA === -1) return 1
-            if (idxB === -1) return -1
-            return idxA - idxB
-        })
 
-        sortedPhases.forEach(phaseName => {
+        fasesExistentes.forEach(fase => {
+            const matchesFase = porFase[fase]
+            const phaseTitle = phaseNames[fase] || fase.toUpperCase()
+
             html += `
-                <div class="group-header mt-10">
-                    <span>${phaseName}</span>
-                    <div class="line"></div>
+                <div class="group-header mt-12 mb-6 bg-primary/5 p-4 rounded-3xl border border-primary/10 backdrop-blur-md mx-4 shadow-lg shadow-primary/5">
+                    <div class="flex items-center gap-4">
+                        <div class="w-2 h-8 bg-primary rounded-full shadow-[0_0_15px_rgba(0,255,135,0.4)]"></div>
+                        <h2 class="text-xl font-black italic uppercase tracking-tighter text-white">PARTIDOS DE ${phaseTitle}</h2>
+                    </div>
                 </div>
             `
-            
-            // Agrupar por fecha dentro de la fase
-            const matchesByDate = {}
-            phases[phaseName].forEach(m => {
-                const date = m.fecha_hora 
-                    ? new Date(m.fecha_hora).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
-                    : 'FECHA POR DEFINIR'
-                if (!matchesByDate[date]) matchesByDate[date] = []
-                matchesByDate[date].push(m)
+
+            // Dentro de cada fase, agrupamos por fecha (descendente)
+            const porFecha = {}
+            const ordenFechas = []
+            matchesFase.forEach(m => {
+                const key = m.fecha_hora 
+                    ? new Date(m.fecha_hora).toISOString().slice(0, 10) 
+                    : 'sin-fecha'
+                if (!porFecha[key]) {
+                    porFecha[key] = []
+                    if (key !== 'sin-fecha') ordenFechas.push(key)
+                }
+                porFecha[key].push(m)
             })
 
-            Object.entries(matchesByDate).forEach(([dateStr, matches]) => {
-                html += `<p class="px-5 text-[10px] font-black text-slate-600 uppercase tracking-widest mb-4 mt-6">${dateStr}</p>`
-                
-                matches.forEach(m => {
-                    const hour = m.fecha_hora ? new Date(m.fecha_hora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'
-                    const showScore = m.estado === 'en_juego' || m.estado === 'finalizado'
-                    
-                    html += `
-                    <div class="match-card animate-fade">
-                        <div class="m-meta">
-                            <span class="m-status ${m.estado === 'en_juego' ? 'live' : ''}">
-                                ${m.estado === 'en_juego' ? '• EN VIVO' : m.estado === 'finalizado' ? 'FINALIZADO' : 'PROGRAMADO'}
-                            </span>
-                            <span>${hour}</span>
-                        </div>
-                        <div class="m-grid">
-                            <div class="m-team">
-                                <img src="${m.h?.escudo_url || 'https://ui-avatars.com/api/?name='+m.h?.nombre}" loading="lazy">
-                                <span>${m.h?.nombre || 'TBD'}</span>
-                            </div>
-                            <div class="m-score-btn">
-                                ${showScore 
-                                    ? `${m.goles_local} - ${m.goles_visitante}` 
-                                    : `<span class="m-vs">VS</span>`
-                                }
-                            </div>
-                            <div class="m-team">
-                                <img src="${m.a?.escudo_url || 'https://ui-avatars.com/api/?name='+m.a?.nombre}" loading="lazy">
-                                <span>${m.a?.nombre || 'TBD'}</span>
+            const fechasOrdenadas = [...new Set(ordenFechas)].sort().reverse()
+            
+            fechasOrdenadas.forEach(key => {
+                const dateObj = new Date(key + 'T12:00:00')
+                const dayName = dateObj.toLocaleDateString('es-ES', { weekday: 'long' }).toUpperCase()
+                const dayNum = dateObj.getDate()
+                const monthName = dateObj.toLocaleDateString('es-ES', { month: 'long' }).toUpperCase()
+
+                html += `
+                    <div class="date-divider">
+                        <div class="date-pill">
+                            <span class="date-day">${dayNum}</span>
+                            <div class="date-info">
+                                <span class="date-weekday">${dayName}</span>
+                                <span class="date-month">${monthName}</span>
                             </div>
                         </div>
-                        <div class="m-footer">
-                            <svg class="w-3 h-3 text-primary opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                            <span>${m.campo?.sede?.nombre || 'Sede'} • ${m.campo?.nombre || 'Cancha TBD'}</span>
-                        </div>
+                        <div class="date-line"></div>
                     </div>
-                    `
-                })
+                `
+                porFecha[key].forEach(m => { html += renderPublicMatchCard(m) })
             })
+
+            // Partidos de esta fase sin fecha
+            if (porFecha['sin-fecha']) {
+                html += `
+                    <div class="date-divider opacity-40">
+                        <div class="date-pill">
+                            <span class="date-day">--</span>
+                            <div class="date-info">
+                                <span class="date-weekday">POR DEFINIR</span>
+                                <span class="date-month">SIN FECHA</span>
+                            </div>
+                        </div>
+                        <div class="date-line"></div>
+                    </div>
+                `
+                porFecha['sin-fecha'].forEach(m => { html += renderPublicMatchCard(m) })
+            }
         })
 
         return html
     }
 
     function renderStatsProfessional(eventos, jugadores) {
+        // Goleadores
         const scorers = {}
-        eventos.filter(e => e.tipo === 'gol').forEach(e => {
-            const p = jugadores.find(j => j.id === e.jugador_id)
-            if (p) {
-                if (!scorers[p.id]) scorers[p.id] = { p, goals: 0 }
-                scorers[p.id].goals++
+        // Tarjetas amarillas
+        const yellows = {}
+        // Tarjetas rojas
+        const reds = {}
+
+        eventos.forEach(e => {
+            const jugador = e.jugadores // join incluido en la query
+            if (!jugador) return
+            const key = e.jugador_id
+            const nombre = jugador.nombre || 'Desconocido'
+            const equipo = jugador.equipos?.nombre || '-'
+
+            if (e.tipo === 'gol') {
+                if (!scorers[key]) scorers[key] = { nombre, equipo, count: 0 }
+                scorers[key].count++
+            } else if (e.tipo === 'amarilla') {
+                if (!yellows[key]) yellows[key] = { nombre, equipo, count: 0 }
+                yellows[key].count++
+            } else if (e.tipo === 'roja') {
+                if (!reds[key]) reds[key] = { nombre, equipo, count: 0 }
+                reds[key].count++
             }
         })
-        const list = Object.values(scorers).sort((a,b) => b.goals - a.goals).slice(0, 10)
+
+        const scorerList = Object.values(scorers).sort((a,b) => b.count - a.count).slice(0, 10)
+        const yellowList = Object.values(yellows).sort((a,b) => b.count - a.count).slice(0, 10)
+        const redList = Object.values(reds).sort((a,b) => b.count - a.count).slice(0, 10)
+
+        const renderStatRow = (item, i, icon) => `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:16px;margin-bottom:8px">
+                <div style="display:flex;align-items:center;gap:14px">
+                    <span style="font-size:22px;font-weight:900;font-style:italic;color:#1e293b;min-width:28px">#${i+1}</span>
+                    <div>
+                        <p style="font-size:12px;font-weight:900;text-transform:uppercase;color:#fff">${item.nombre}</p>
+                        <p style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary)">${item.equipo}</p>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                    <span style="font-size:18px">${icon}</span>
+                    <span style="font-size:24px;font-weight:900;font-style:italic;color:#fff">${item.count}</span>
+                </div>
+            </div>
+        `
+
+        const emptyMsg = (icon, text) => `
+            <div style="padding:32px;text-align:center;opacity:0.2;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.2em">${icon} ${text}</div>
+        `
 
         return `
-            <div class="space-y-6 animate-fade mt-4">
-                <div class="group-header">
-                    <span>Goleadores</span>
+            <div style="padding:0 16px 40px">
+                <div class="group-header" style="margin-top:8px">
+                    <span>⚽ Goleadores</span>
                     <div class="line"></div>
                 </div>
-                ${list.map((s, i) => `
-                    <div class="flex items-center justify-between p-5 bg-white/5 rounded-3xl border border-white/5">
-                        <div class="flex items-center gap-5">
-                            <span class="text-2xl font-black italic text-slate-800">#${i+1}</span>
-                            <div>
-                                <p class="text-xs font-black uppercase text-white">${s.p.nombre}</p>
-                                <p class="text-[9px] text-primary font-bold uppercase tracking-widest">${s.p.equipos?.nombre}</p>
-                            </div>
-                        </div>
-                        <div class="text-3xl font-black italic text-white">${s.goals}</div>
-                    </div>
-                `).join('') || '<p class="opacity-20 text-[10px] text-center py-20 uppercase font-black italic tracking-widest">Sin registros de goles</p>'}
+                <div style="margin-top:12px">
+                    ${scorerList.length ? scorerList.map((s,i) => renderStatRow(s, i, '⚽')).join('') : emptyMsg('⚽', 'Sin goles registrados')}
+                </div>
+
+                <div class="group-header" style="margin-top:32px">
+                    <span>🟡 Amonestados</span>
+                    <div class="line"></div>
+                </div>
+                <div style="margin-top:12px">
+                    ${yellowList.length ? yellowList.map((s,i) => renderStatRow(s, i, '🟡')).join('') : emptyMsg('🟡', 'Sin tarjetas amarillas')}
+                </div>
+
+                <div class="group-header" style="margin-top:32px">
+                    <span>🔴 Expulsados</span>
+                    <div class="line"></div>
+                </div>
+                <div style="margin-top:12px">
+                    ${redList.length ? redList.map((s,i) => renderStatRow(s, i, '🔴')).join('') : emptyMsg('🔴', 'Sin tarjetas rojas')}
+                </div>
             </div>
         `
     }
