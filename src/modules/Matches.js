@@ -136,7 +136,10 @@ export const renderMatches = async (container) => {
         const updateObj = type === 'local' ? { goles_local: value } : { goles_visitante: value }
         updateObj.estado = 'finalizado'
         const { error: updErr } = await supabase.from('partidos').update(updateObj).eq('id', id)
-        if(!updErr) console.log('Marcador actualizado')
+        if(!updErr) {
+            console.log('Marcador actualizado')
+            window.dispatchEvent(new Event('resultado-guardado'))
+        }
       }
     })
   }

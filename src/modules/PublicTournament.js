@@ -15,7 +15,7 @@ export const renderPublicTournament = async (container, params) => {
 
         const [{ data: g }, { data: tab }, { data: p }, { data: eq }, { data: j }] = await Promise.all([
             supabase.from('grupos').select('*').eq('torneo_id', torneo.id),
-            supabase.from('tabla_posiciones').select('*, equipos(nombre, escudo_url)').eq('torneo_id', torneo.id),
+            supabase.from('vista_posiciones').select('*').eq('torneo_id', torneo.id),
             supabase.from('partidos')
                 .select(`*,
                     h:equipos!equipo_local_id(nombre, escudo_url),
@@ -25,7 +25,8 @@ export const renderPublicTournament = async (container, params) => {
                 .eq('torneo_id', torneo.id)
                 .order('fecha_hora', { ascending: false, nullsLast: true }),
             supabase.from('equipos').select('*').eq('torneo_id', torneo.id).is('deleted_at', null),
-            supabase.from('jugadores').select('*, equipos(nombre)').eq('torneo_id', torneo.id)
+            // Los campos públicos no requieren DNI
+            supabase.from('jugadores_publicos').select('*, equipos(nombre)').eq('torneo_id', torneo.id)
         ])
 
         grupos = g || []
@@ -39,7 +40,7 @@ export const renderPublicTournament = async (container, params) => {
         if (partidoIds.length > 0) {
             const { data: evData } = await supabase
                 .from('eventos_partido')
-                .select('*, jugadores(nombre, equipo_id, equipos(nombre))')
+                .select('*, jugadores:jugadores_publicos!jugador_id(nombre, equipo_id, equipos(nombre))')
                 .in('partido_id', partidoIds)
             eventos = evData || []
         }
@@ -718,7 +719,7 @@ export const renderPublicTournament = async (container, params) => {
     function renderPosicionesProfessional(grupos, tabla) {
         // DEBUG: log para diagnosticar datos
         console.log('[Posiciones] grupos:', grupos.length, grupos.map(g => ({id: g.id, nombre: g.nombre})))
-        console.log('[Posiciones] tabla:', tabla.length, tabla.map(t => ({equipo: t.equipos?.nombre, grupo_id: t.grupo_id, pts: t.pts})))
+        console.log('[Posiciones] tabla:', tabla.length, tabla.map(t => ({equipo: t.equipo_nombre, grupo_id: t.grupo_id, pts: t.pts})))
 
         const tableHeader = `
             <div class="table-row table-header">
@@ -729,8 +730,8 @@ export const renderPublicTournament = async (container, params) => {
         const renderRow = (r, i) => `
             <div class="table-row">
                 <span class="st-pos">${(i + 1).toString().padStart(2, '0')}</span>
-                <img src="${r.equipos?.escudo_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(r.equipos?.nombre || '?')}" class="st-logo" loading="lazy">
-                <span class="st-name">${r.equipos?.nombre || 'Equipo'}</span>
+                <img src="${r.escudo_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(r.equipo_nombre || '?')}" class="st-logo" loading="lazy">
+                <span class="st-name">${r.equipo_nombre || 'Equipo'}</span>
                 <span class="st-val text-slate-400">${r.pj ?? 0}</span>
                 <span class="st-val text-slate-400">${(r.dg ?? 0) > 0 ? '+' : ''}${r.dg ?? 0}</span>
                 <span class="st-val st-pts">${r.pts ?? 0}</span>
@@ -988,8 +989,11 @@ export const renderPublicTournament = async (container, params) => {
                 `
 
                 try {
+                    const { data: { user } } = await supabase.auth.getUser()
+                    // Si el usuario es el dueño del torneo, consulta la tabla con DNI
+                    const source = (user && user.id === torneo.user_id) ? 'jugadores' : 'jugadores_publicos'
                     const { data: players, error } = await supabase
-                        .from('jugadores')
+                        .from(source)
                         .select('*')
                         .eq('equipo_id', teamId)
                         .order('dorsal', { ascending: true })

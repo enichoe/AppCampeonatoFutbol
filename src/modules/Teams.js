@@ -161,7 +161,10 @@ export const renderTeams = async (container) => {
         if (!teamId) return
         openRosterModal('Cargando plantilla...')
         try {
-            const { data: players, error } = await supabase.from('jugadores').select('*').eq('equipo_id', teamId).is('deleted_at', null)
+            const { data: { user } } = await supabase.auth.getUser()
+            // Usar la tabla completa solo si hay usuario autenticado (se asume dueño en este módulo por filtrado previo)
+            const source = user ? 'jugadores' : 'jugadores_publicos'
+            const { data: players, error } = await supabase.from(source).select('*').eq('equipo_id', teamId).is('deleted_at', null)
             if (error) throw error
             if (!players || players.length === 0) return openRosterModal('<p class="text-center py-6">No hay jugadores registrados.</p>')
             openRosterModal(players.map(p => `

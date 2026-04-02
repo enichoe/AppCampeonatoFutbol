@@ -128,6 +128,10 @@ export const renderTournamentDetail = async (container, tournamentId) => {
         alert('Copiado al portapapeles')
     }
 
+    window.addEventListener('resultado-guardado', () => {
+        if (activeTab === 'resumen' || activeTab === 'partidos') renderTabContent()
+    })
+
     renderTabContent()
   }
 
@@ -361,33 +365,42 @@ export const renderTournamentDetail = async (container, tournamentId) => {
     if(tournament.estado !== 'configuracion') {
         const { data: grupos } = await supabase.from('grupos').select('*').eq('torneo_id', tournamentId).order('nombre')
         let tablesHtml = ''
-        if (grupos) {
-            for(const g of grupos) {
-                const { data: t } = await supabase.from('tabla_posiciones').select('*, equipos(nombre)').eq('grupo_id', g.id).order('pts', { ascending: false }).order('dg', { ascending: false }).order('gf', { ascending: false })
-                if (t && t.length > 0) {
-                    tablesHtml += `
-                        <div class="card !p-0 overflow-hidden border-white/5 bg-slate-900/40">
-                            <div class="px-6 py-4 bg-slate-800/50 flex justify-between items-center border-b border-white/5">
-                                <span class="text-[10px] font-black uppercase text-indigo-400 italic font-bold tracking-[0.2em]">${g.nombre}</span>
+
+        const renderMiniTable = (titulo, rows) => {
+            if (!rows || rows.length === 0) return ''
+            return `
+                <div class="card !p-0 overflow-hidden border-white/5 bg-slate-900/40">
+                    <div class="px-6 py-4 bg-slate-800/50 flex justify-between items-center border-b border-white/5">
+                        <span class="text-[10px] font-black uppercase text-indigo-400 italic font-bold tracking-[0.2em]">${titulo}</span>
+                    </div>
+                    <div class="divide-y divide-white/5">
+                        ${rows.sort((a,b) => b.pts - a.pts || b.dg - a.dg).map((r, i) => `
+                            <div class="flex items-center justify-between p-4 ${i < (tournament.configuracion.clasificados || 2) ? 'bg-indigo-500/5' : ''}">
+                                <div class="flex items-center gap-4">
+                                    <span class="text-[10px] font-black text-slate-600 w-4">${i+1}</span>
+                                    <span class="text-xs font-bold text-slate-200 uppercase tracking-tight">${r.equipo_nombre || '???'}</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-xs font-black text-indigo-400 font-mono">${r.pts} <span class="text-[8px] text-slate-500 uppercase ml-0.5">pts</span></span>
+                                </div>
                             </div>
-                            <div class="divide-y divide-white/5">
-                                ${t.map((r, i) => `
-                                    <div class="flex items-center justify-between p-4 ${i < (tournament.configuracion.clasificados || 2) ? 'bg-indigo-500/5' : ''}">
-                                        <div class="flex items-center gap-4">
-                                            <span class="text-[10px] font-black text-slate-600 w-4">${i+1}</span>
-                                            <span class="text-xs font-bold text-slate-200 uppercase tracking-tight">${r.equipos?.nombre || '???'}</span>
-                                        </div>
-                                        <div class="text-right">
-                                            <span class="text-xs font-black text-indigo-400 font-mono">${r.pts} <span class="text-[8px] text-slate-500 uppercase ml-0.5">pts</span></span>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `
-                }
-            }
+                        `).join('')}
+                    </div>
+                </div>
+            `
         }
+
+        if (grupos && grupos.length > 0) {
+            for(const g of grupos) {
+                const { data: t } = await supabase.from('vista_posiciones').select('*').eq('grupo_id', g.id).order('pts', { ascending: false }).order('dg', { ascending: false }).order('gf', { ascending: false })
+                tablesHtml += renderMiniTable(g.nombre, t)
+            }
+        } else {
+            // Caso sin grupos (Liga)
+            const { data: t } = await supabase.from('vista_posiciones').select('*').eq('torneo_id', tournamentId).order('pts', { ascending: false }).order('dg', { ascending: false }).order('gf', { ascending: false })
+            tablesHtml += renderMiniTable('Tabla General', t)
+        }
+
         if (el.querySelector('#mini-tables')) {
             el.querySelector('#mini-tables').innerHTML = tablesHtml
         }
@@ -607,7 +620,10 @@ export const renderTournamentDetail = async (container, tournamentId) => {
 
     const playerList = document.getElementById('playerList')
     const loadPlayers = async () => {
-        const { data: players } = await supabase.from('jugadores').select('*').eq('equipo_id', teamId)
+        const { data: { user } } = await supabase.auth.getUser()
+        // El dueño ve la tabla completa (incluye DNI), otros solo la vista pública.
+        const source = (user && user.id === tournament.user_id) ? 'jugadores' : 'jugadores_publicos'
+        const { data: players } = await supabase.from(source).select('*').eq('equipo_id', teamId)
         playerList.innerHTML = players.length ? players.map(p => `
             <div class="p-4 bg-slate-900/60 rounded-2xl flex items-center justify-between group border border-white/5 hover:border-indigo-500/50 transition-all">
                 <div class="flex items-center gap-4">
@@ -671,7 +687,9 @@ export const renderTournamentDetail = async (container, tournamentId) => {
   }
 
   const renderHallOfFame = async (el) => {
-    const { data: players } = await supabase.from('jugadores').select('*, equipos(nombre)').eq('torneo_id', tournamentId)
+    const { data: { user } } = await supabase.auth.getUser()
+    const source = (user && user.id === tournament.user_id) ? 'jugadores' : 'jugadores_publicos'
+    const { data: players } = await supabase.from(source).select('*, equipos(nombre)').eq('torneo_id', tournamentId)
     
     el.innerHTML = `
         <div class="card max-w-4xl mx-auto border-indigo-500/20">

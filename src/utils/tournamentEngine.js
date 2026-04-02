@@ -54,9 +54,8 @@ export async function sortearYDistribuir(torneoId) {
     // Sorteo Fisher-Yates
     const shuffled = [...equipos].sort(() => Math.random() - 0.5);
 
-    // Limpiar grupos y tabla previos
+    // Limpiar grupos previos (la tabla_posiciones se elimina automáticamente como view dependiente)
     await supabase.from('grupos').delete().eq('torneo_id', torneoId);
-    await supabase.from('tabla_posiciones').delete().eq('torneo_id', torneoId);
 
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -80,13 +79,6 @@ export async function sortearYDistribuir(torneoId) {
 
         for (const team of teamsForGroup) {
             await supabase.from('equipos').update({ grupo_id: grupo.id }).eq('id', team.id);
-            await supabase.from('tabla_posiciones').upsert([{
-                user_id: user.id,
-                torneo_id: torneoId,
-                grupo_id: grupo.id,
-                equipo_id: team.id,
-                pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, dg: 0, pts: 0
-            }]);
         }
     }
     
@@ -162,8 +154,8 @@ export async function generarEliminatoria(torneoId) {
     let clasificados = [];
     
     for (const grupo of grupos) {
-        const { data: tabla } = await supabase.from('tabla_posiciones')
-            .select('*, equipos(nombre)')
+        const { data: tabla } = await supabase.from('vista_posiciones')
+            .select('*')
             .eq('grupo_id', grupo.id)
             .order('pts', { ascending: false })
             .order('dg', { ascending: false })
@@ -281,35 +273,10 @@ export async function guardarResultado(partidoId, gL, gV) {
     
     if(error) throw error;
     
-    // Solo recalcular tabla si es fase de grupos
-    if (p.grupo_id) {
-        await recalcularTabla(p.grupo_id);
-    }
+    // Disparar evento para actualización automática de la UI
+    window.dispatchEvent(new Event('resultado-guardado'));
 }
 
-async function recalcularTabla(grupoId) {
-    const { data: t } = await supabase.from('tabla_posiciones').select('*').eq('grupo_id', grupoId);
-    const { data: m } = await supabase.from('partidos').select('*').eq('grupo_id', grupoId).eq('estado', 'finalizado');
-
-    for (const row of t) {
-        const s = { pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, dg: 0, pts: 0 };
-        m.forEach(match => {
-            if(match.equipo_local_id === row.equipo_id) {
-                s.pj++; s.gf += match.goles_local; s.gc += match.goles_visitante;
-                if(match.goles_local > match.goles_visitante) { s.pg++; s.pts += 3; }
-                else if(match.goles_local < match.goles_visitante) s.pp++;
-                else { s.pe++; s.pts += 1; }
-            } else if(match.equipo_visitante_id === row.equipo_id) {
-                s.pj++; s.gf += match.goles_visitante; s.gc += match.goles_local;
-                if(match.goles_visitante > match.goles_local) { s.pg++; s.pts += 3; }
-                else if(match.goles_visitante < match.goles_local) s.pp++;
-                else { s.pe++; s.pts += 1; }
-            }
-        });
-        s.dg = s.gf - s.gc;
-        await supabase.from('tabla_posiciones').update(s).eq('id', row.id);
-    }
-}
 
 export async function obtenerFases(torneoId) {
     const { data: partidos } = await supabase.from('partidos').select('fase, estado').eq('torneo_id', torneoId);
