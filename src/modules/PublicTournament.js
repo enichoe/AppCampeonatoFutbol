@@ -911,20 +911,48 @@ export const renderPublicTournament = async (container, params) => {
                         return
                     }
 
-                    listEl.innerHTML = players.map(p => `
-                        <div class="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-2xl">
-                            <div class="flex items-center gap-4">
-                                ${renderFotoJugador(p.foto_url, p.nombre, 44)}
-                                <div class="text-left">
-                                    <p class="font-black uppercase text-xs text-white">${p.nombre}</p>
-                                    <p class="text-[8px] text-cyan font-black uppercase">${p.posicion || 'Jugador'}</p>
-                                </div>
-                            </div>
-                            <div class="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center font-black text-xs text-slate-500">
-                                # ${p.dorsal || '--'}
-                            </div>
+                    listEl.innerHTML = `
+                        <div class="overflow-x-auto -mx-4 px-4 no-scrollbar">
+                            <table class="w-full text-left border-collapse min-w-[500px]">
+                                <thead>
+                                    <tr class="text-[8px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5">
+                                        <th class="py-3 px-2">Jugador / Nac.</th>
+                                        <th class="py-3 px-2 text-center">#</th>
+                                        <th class="py-3 px-2">Edad</th>
+                                        <th class="py-3 px-2">Pos</th>
+                                        <th class="py-3 px-2 text-center text-cyan">G</th>
+                                        <th class="py-3 px-2 text-center text-cyan">A</th>
+                                        <th class="py-3 px-2 text-center">PJ</th>
+                                        <th class="py-3 px-2 text-center text-secondary">TA</th>
+                                        <th class="py-3 px-2 text-center text-red-neon">TR</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-white/5">
+                                    ${players.map(p => `
+                                        <tr class="text-[10px] font-bold">
+                                            <td class="py-3 px-2">
+                                                <div class="flex items-center gap-2">
+                                                    ${renderFotoJugador(p.foto_url, p.nombre, 32)}
+                                                    <div class="flex flex-col">
+                                                        <span class="text-white uppercase truncate max-w-[120px] font-black italic">${p.nombre}</span>
+                                                        <span class="text-[7px] text-slate-500 uppercase tracking-tighter font-black">${p.nacionalidad || 'S/N'}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="py-3 px-2 text-center text-cyan font-black italic">#${p.dorsal || '--'}</td>
+                                            <td class="py-3 px-2 text-center text-slate-400 font-black italic">${p.edad || '--'}</td>
+                                            <td class="py-3 px-2 text-slate-400 uppercase text-[8px] italic">${p.posicion || '--'}</td>
+                                            <td class="py-3 px-2 text-center text-white font-black italic bg-white/5 rounded">${p.goles || 0}</td>
+                                            <td class="py-3 px-2 text-center text-white/50">${p.asistencias || 0}</td>
+                                            <td class="py-3 px-2 text-center text-slate-500">${p.partidos_jugados || 0}</td>
+                                            <td class="py-3 px-2 text-center text-secondary">${p.tarjetas_amarillas || 0}</td>
+                                            <td class="py-3 px-2 text-center text-red-neon">${p.tarjetas_rojas || 0}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
                         </div>
-                    `).join('')
+                    `
                 } catch (err) { console.error(err) }
             }
         })

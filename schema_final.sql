@@ -121,6 +121,13 @@ CREATE TABLE jugadores (
   foto_url TEXT,
   dni TEXT, -- Solo accesible por el dueño
   edad INTEGER,
+  fecha_nacimiento DATE,
+  nacionalidad TEXT,
+  goles INTEGER DEFAULT 0,
+  asistencias INTEGER DEFAULT 0,
+  tarjetas_amarillas INTEGER DEFAULT 0,
+  tarjetas_rojas INTEGER DEFAULT 0,
+  partidos_jugados INTEGER DEFAULT 0,
   lesionado BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -196,7 +203,7 @@ CREATE TRIGGER on_auth_user_created
 
 -- [jugadores_publicos] - Oculta el DNI para uso público
 CREATE OR REPLACE VIEW jugadores_publicos AS
-SELECT id, torneo_id, equipo_id, nombre, dorsal, posicion, foto_url, edad, lesionado, created_at
+SELECT id, torneo_id, equipo_id, nombre, dorsal, posicion, foto_url, edad, fecha_nacimiento, nacionalidad, goles, asistencias, tarjetas_amarillas, tarjetas_rojas, partidos_jugados, lesionado, created_at
 FROM jugadores;
 
 -- [vista_posiciones] - Cálculo en tiempo real

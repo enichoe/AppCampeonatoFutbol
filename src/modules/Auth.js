@@ -1,4 +1,5 @@
 import { supabase } from '../services/supabase.js'
+import { showToast } from '../utils/notifications.js'
 
 export const renderAuth = (container) => {
   container.innerHTML = `
@@ -100,14 +101,14 @@ export const renderAuth = (container) => {
     const email = e.target.email.value.trim()
     const password = e.target.password.value.trim()
     
-    if(!email || !password) return alert('Completa todos los campos')
+    if(!email || !password) return showToast('Completa todos los campos', 'error')
 
     btn.disabled = true
     btn.innerHTML = '<span class="animate-spin rounded-full h-4 w-4 border-t-2 border-white mr-2 inline-block"></span> Entrando...'
 
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
-        alert("Error: " + error.message)
+        showToast(error.message, 'error')
         btn.disabled = false
         btn.innerText = 'Entrar al Panel'
     } else {
@@ -122,7 +123,7 @@ export const renderAuth = (container) => {
     const password = e.target.password.value.trim()
 
     if(!email || !password || password.length < 6) {
-        return alert('El correo es obligatorio y la clave debe tener al menos 6 caracteres.')
+        return showToast('El correo es obligatorio y la clave debe tener al menos 6 caracteres.', 'error')
     }
 
     btn.disabled = true
@@ -131,14 +132,14 @@ export const renderAuth = (container) => {
     const { data, error } = await supabase.auth.signUp({ email, password })
     
     if (error) {
-        alert("Error: " + error.message)
+        showToast(error.message, 'error')
         btn.disabled = false
         btn.innerText = 'Registrarme Ahora'
     } else {
         if (data?.session) {
             window.navigate('dashboard')
         } else {
-            alert('¡Registro solicitado! Revisa tu correo (o SPAM) para confirmar tu cuenta.')
+            showToast('¡Registro solicitado! Revisa tu correo.', 'info')
             btn.disabled = false
             btn.innerText = 'Registrarme Ahora'
         }

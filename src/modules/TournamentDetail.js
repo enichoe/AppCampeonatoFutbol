@@ -1,7 +1,8 @@
 import { supabase } from '../services/supabase.js'
 import * as engine from '../utils/tournamentEngine.js'
-import { uploadImage, createImageDropzone, setupDropzone } from '../utils/storage.js'
+import { uploadImage, renderEscudo, renderFotoJugador, createImageDropzone, setupDropzone } from '../utils/storage.js'
 import { parsearFechaLocal, formatearFecha, formatearFechaHora } from '../utils/fechas.js'
+import { showToast, showModal } from '../utils/notifications.js'
 
 export const renderTournamentDetail = async (container, tournamentId) => {
   let tournament = null
@@ -126,7 +127,7 @@ export const renderTournamentDetail = async (container, tournamentId) => {
 
     document.getElementById('btnCopyLink').onclick = () => {
         navigator.clipboard.writeText(publicUrl)
-        alert('Copiado al portapapeles')
+        showToast('Link copiado al portapapeles', 'info')
     }
 
     window.addEventListener('resultado-guardado', () => {
@@ -615,24 +616,91 @@ export const renderTournamentDetail = async (container, tournamentId) => {
                 <button id="btnAddPlayer" class="btn-primary py-2 px-6 text-xs font-black">NUEVO JUGADOR</button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="playerList">
-                <div class="col-span-full py-10 text-center text-slate-600">Cargando jugadores...</div>
+            <div class="overflow-x-auto -mx-6 px-6 no-scrollbar">
+                <table class="w-full text-left border-collapse min-w-[700px]">
+                    <thead>
+                        <tr class="text-[9px] font-black uppercase text-slate-500 tracking-[0.2em] border-b border-white/5 bg-slate-900/40">
+                            <th class="py-4 px-4 whitespace-nowrap">Jugador</th>
+                            <th class="py-4 px-2 text-center whitespace-nowrap">#</th>
+                            <th class="py-4 px-4 whitespace-nowrap">Posición</th>
+                            <th class="py-4 px-2 text-center whitespace-nowrap text-indigo-400">Goles</th>
+                            <th class="py-4 px-2 text-center whitespace-nowrap text-cyan-400">Asist</th>
+                            <th class="py-4 px-2 text-center whitespace-nowrap">PJ</th>
+                            <th class="py-4 px-2 text-center whitespace-nowrap text-amber-500">TA</th>
+                            <th class="py-4 px-2 text-center whitespace-nowrap text-red-500">TR</th>
+                            <th class="py-4 px-4 text-right whitespace-nowrap">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="playerList" class="divide-y divide-white/5">
+                        <tr><td colspan="9" class="py-20 text-center text-slate-600 italic text-[11px] uppercase tracking-widest font-black">Cargando jugadores...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
         <div id="playerModal" class="hidden fixed inset-0 z-[150] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-md">
-            <div class="card w-full max-w-md border-white/5">
-                <h3 class="text-xl font-black italic uppercase italic tracking-tighter mb-8">Registrar Nuevo Jugador</h3>
+            <div class="card w-full max-w-lg border-white/5 shadow-2xl animate-scale-up">
+                <div class="flex justify-between items-center mb-8">
+                    <h3 class="text-xl font-black italic uppercase italic tracking-tighter" id="playerModalTitle">Registrar Nuevo Jugador</h3>
+                    <button type="button" id="closePlayerModalBtn" class="text-slate-500 hover:text-white text-2xl">&times;</button>
+                </div>
                 <form id="playerForm" class="space-y-6">
+                    <input type="hidden" name="id" id="playerId">
                     ${createImageDropzone('player_foto', 'Foto del Jugador', false, 'circle')}
-                    <input type="text" name="nombre" placeholder="Nombre completo" class="form-input text-xs" required>
-                    <div class="grid grid-cols-2 gap-4">
-                        <input type="number" name="dorsal" placeholder="Dorsal" class="form-input text-xs">
-                        <input type="text" name="posicion" placeholder="Posición" class="form-input text-xs">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="col-span-full">
+                            <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2 block italic">Nombre Completo *</label>
+                            <input type="text" name="nombre" placeholder="Nombre del crack" class="form-input text-xs" required>
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2 block italic">Dorsal</label>
+                            <input type="number" name="dorsal" placeholder="10" class="form-input text-xs">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2 block italic">Posición</label>
+                            <input type="text" name="posicion" placeholder="Delantero" class="form-input text-xs">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2 block italic">Edad</label>
+                            <input type="number" name="edad" placeholder="Edad" class="form-input text-xs">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2 block italic">Fecha de Nacimiento</label>
+                            <input type="date" name="fecha_nacimiento" class="form-input text-xs">
+                        </div>
+                        <div class="col-span-full">
+                            <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2 block italic">Nacionalidad</label>
+                            <input type="text" name="nacionalidad" placeholder="Peruana" class="form-input text-xs">
+                        </div>
                     </div>
+
+                    <div class="grid grid-cols-3 md:grid-cols-5 gap-3 pt-6 border-t border-white/5">
+                        <div class="text-center">
+                            <label class="text-[8px] font-black uppercase text-indigo-400 mb-1 block">Goles</label>
+                            <input type="number" name="goles" value="0" min="0" class="form-input text-xs text-center p-2">
+                        </div>
+                        <div class="text-center">
+                            <label class="text-[8px] font-black uppercase text-cyan-400 mb-1 block">Asist</label>
+                            <input type="number" name="asistencias" value="0" min="0" class="form-input text-xs text-center p-2">
+                        </div>
+                        <div class="text-center">
+                            <label class="text-[8px] font-black uppercase text-slate-500 mb-1 block">PJ</label>
+                            <input type="number" name="partidos_jugados" value="0" min="0" class="form-input text-xs text-center p-2">
+                        </div>
+                        <div class="text-center">
+                            <label class="text-[8px] font-black uppercase text-amber-500 mb-1 block">TA</label>
+                            <input type="number" name="tarjetas_amarillas" value="0" min="0" class="form-input text-xs text-center p-2">
+                        </div>
+                        <div class="text-center">
+                            <label class="text-[8px] font-black uppercase text-red-500 mb-1 block">TR</label>
+                            <input type="number" name="tarjetas_rojas" value="0" min="0" class="form-input text-xs text-center p-2">
+                        </div>
+                    </div>
+
                     <div class="flex gap-4 pt-4">
-                        <button type="submit" id="btnSavePlayer" class="btn-primary flex-1 py-3 text-[11px] font-black uppercase tracking-widest">GUARDAR ➔</button>
-                        <button type="button" id="closePlayerModal" class="btn-secondary flex-1 py-3">CANCELAR</button>
+                        <button type="submit" id="btnSavePlayer" class="btn-primary flex-1 py-4 text-xs font-black uppercase tracking-widest italic shadow-indigo-600/20">GUARDAR JUGADOR ➔</button>
+                        <button type="button" id="closePlayerModal" class="btn-secondary flex-1 py-4 text-xs font-black italic">CANCELAR</button>
                     </div>
                 </form>
             </div>
@@ -646,34 +714,111 @@ export const renderTournamentDetail = async (container, tournamentId) => {
         const { data: { user } } = await supabase.auth.getUser()
         // El dueño ve la tabla completa (incluye DNI), otros solo la vista pública.
         const source = (user && user.id === tournament.user_id) ? 'jugadores' : 'jugadores_publicos'
-        const { data: players } = await supabase.from(source).select('*').eq('equipo_id', teamId)
-        playerList.innerHTML = players.length ? players.map(p => `
-            <div class="p-4 bg-slate-900/60 rounded-2xl flex items-center justify-between group border border-white/5 hover:border-indigo-500/50 transition-all">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center bg-indigo-500 shadow-xl shadow-indigo-500/20">
-                        ${p.foto_url ? `<img src="${p.foto_url}" class="w-full h-full object-cover">` : `<span class="font-black text-xs text-white">${p.dorsal || '??'}</span>`}
-                    </div>
-                    <div>
-                        <p class="font-black italic text-xs uppercase text-slate-200">${p.nombre}</p>
-                        <p class="text-[9px] text-slate-500 uppercase font-black tracking-widest">${p.posicion || 'Sin posición'}</p>
-                    </div>
-                </div>
-                <button class="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity btn-del-player" data-id="${p.id}">&times;</button>
-            </div>
-        `).join('') : '<p class="col-span-full text-center py-20 text-slate-700 italic text-[11px] uppercase tracking-widest font-black">No hay jugadores registrados en este equipo.</p>'
+        const { data: players } = await supabase.from(source).select('*').eq('equipo_id', teamId).order('dorsal', { ascending: true })
         
+        playerList.innerHTML = players.length ? players.map(p => `
+            <tr class="group hover:bg-white/[0.02] transition-colors">
+                <td class="py-4 px-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full overflow-hidden bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center">
+                            ${p.foto_url ? `<img src="${p.foto_url}" class="w-full h-full object-cover">` : `<span class="text-xs font-black text-indigo-400 italic">${p.nombre.substring(0,1)}</span>`}
+                        </div>
+                        <div>
+                            <p class="font-black italic text-xs uppercase text-slate-200 leading-none">${p.nombre}</p>
+                            <p class="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-1">${p.nacionalidad || 'Nacionalidad n/a'}</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="py-4 px-2 text-center text-xs font-black text-indigo-400 font-mono italic">#${p.dorsal || '--'}</td>
+                <td class="py-4 px-4 text-[10px] font-black text-slate-400 uppercase italic tracking-wider">${p.posicion || '--'}</td>
+                <td class="py-4 px-2 text-center text-xs font-black text-white italic bg-indigo-600/5">${p.goles || 0}</td>
+                <td class="py-4 px-2 text-center text-xs font-black text-white italic bg-cyan-600/5">${p.asistencias || 0}</td>
+                <td class="py-4 px-2 text-center text-[10px] font-bold text-slate-500">${p.partidos_jugados || 0}</td>
+                <td class="py-4 px-2 text-center text-xs font-black text-amber-500 italic bg-amber-500/5">${p.tarjetas_amarillas || 0}</td>
+                <td class="py-4 px-2 text-center text-xs font-black text-red-500 italic bg-red-500/5">${p.tarjetas_rojas || 0}</td>
+                <td class="py-4 px-4 text-right">
+                    <div class="flex items-center justify-end gap-2">
+                        <button class="w-8 h-8 flex items-center justify-center bg-white/5 hover:bg-indigo-600 hover:text-white rounded-lg transition-all text-slate-500 btn-edit-player" data-player='${JSON.stringify(p).replace(/'/g, "&apos;")}'>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5M18.364 5.364l1.414 1.414-7.071 7.071-1.414 0 0-1.414 7.071-7.071z"></path></svg>
+                        </button>
+                        <button class="w-8 h-8 flex items-center justify-center bg-white/5 hover:bg-red-600 hover:text-white rounded-lg transition-all text-slate-500 btn-del-player" data-id="${p.id}">&times;</button>
+                    </div>
+                </td>
+            </tr>
+        `).join('') : '<tr><td colspan="9" class="py-20 text-center text-slate-700 italic text-[11px] uppercase tracking-widest font-black">No hay jugadores registrados.</td></tr>'
+        
+        container.querySelectorAll('.btn-edit-player').forEach(btn => {
+            btn.onclick = () => {
+                const p = JSON.parse(btn.dataset.player)
+                const form = document.getElementById('playerForm')
+                document.getElementById('playerModalTitle').innerText = 'Editar Datos de ' + p.nombre
+                document.getElementById('playerModal').classList.remove('hidden')
+                
+                // Rellenar formulario
+                form.id.value = p.id
+                form.nombre.value = p.nombre
+                form.dorsal.value = p.dorsal || ''
+                form.posicion.value = p.posicion || ''
+                form.edad.value = p.edad || ''
+                form.fecha_nacimiento.value = p.fecha_nacimiento || ''
+                form.nacionalidad.value = p.nacionalidad || ''
+                form.goles.value = p.goles || 0
+                form.asistencias.value = p.asistencias || 0
+                form.partidos_jugados.value = p.partidos_jugados || 0
+                form.tarjetas_amarillas.value = p.tarjetas_amarillas || 0
+                form.tarjetas_rojas.value = p.tarjetas_rojas || 0
+                
+                // Foto preview si existe
+                if (p.foto_url) {
+                    const preview = document.getElementById('player_foto_preview')
+                    if (preview) {
+                        preview.innerHTML = `<img src="${p.foto_url}" class="w-full h-full object-cover">`
+                        preview.classList.remove('bg-slate-800')
+                    }
+                }
+
+                // Resetear estado del botón guardar (evita bloqueo de carga previa)
+                const saveBtn = document.getElementById('btnSavePlayer')
+                saveBtn.disabled = false
+                saveBtn.innerText = 'GUARDAR CAMBIOS ➔'
+            }
+        })
+
         container.querySelectorAll('.btn-del-player').forEach(btn => {
-           btn.onclick = async () => {
-               if(confirm('¿Eliminar jugador?')) {
-                   await supabase.from('jugadores').delete().eq('id', btn.dataset.id)
-                   loadPlayers()
-               }
+           btn.onclick = () => {
+                showModal({
+                    title: '¿Eliminar Jugador?',
+                    message: 'Esta acción no se puede deshacer. Los datos del jugador serán eliminados permanentemente.',
+                    confirmText: 'SÍ, ELIMINAR',
+                    type: 'danger',
+                    onConfirm: async () => {
+                        const { error } = await supabase.from('jugadores').delete().eq('id', btn.dataset.id)
+                        if (error) showToast(error.message, 'error')
+                        else {
+                            showToast('Jugador eliminado correctamente')
+                            loadPlayers()
+                        }
+                    }
+                })
            }
         })
     }
 
-    document.getElementById('btnAddPlayer').onclick = () => document.getElementById('playerModal').classList.remove('hidden')
+    document.getElementById('btnAddPlayer').onclick = () => {
+        document.getElementById('playerForm').reset()
+        document.getElementById('playerId').value = ''
+        document.getElementById('playerModalTitle').innerText = 'Registrar Nuevo Jugador'
+        document.getElementById('player_foto_preview').innerHTML = `<span class="text-indigo-400">📷</span>`
+        
+        // Resetear estado del botón (evita quedarse en "Procesando")
+        const saveBtn = document.getElementById('btnSavePlayer')
+        saveBtn.disabled = false
+        saveBtn.innerText = 'GUARDAR JUGADOR ➔'
+
+        document.getElementById('playerModal').classList.remove('hidden')
+    }
     document.getElementById('closePlayerModal').onclick = () => document.getElementById('playerModal').classList.add('hidden')
+    document.getElementById('closePlayerModalBtn').onclick = () => document.getElementById('playerModal').classList.add('hidden')
     
     document.getElementById('playerForm').onsubmit = async (e) => {
         e.preventDefault()
@@ -685,24 +830,63 @@ export const renderTournamentDetail = async (container, tournamentId) => {
         
         try {
             const { data: { user } } = await supabase.auth.getUser()
+            
+            const pId = fd.get('id')
+            const dorsal = fd.get('dorsal') ? parseInt(fd.get('dorsal')) : null
+            
+            // VALIDACIÓN: Número de camiseta único por equipo (excepto si es el mismo jugador editado)
+            if (dorsal) {
+                const { data: existing } = await supabase
+                    .from('jugadores')
+                    .select('id, nombre')
+                    .eq('equipo_id', teamId)
+                    .eq('dorsal', dorsal)
+                
+                if (existing && existing.length > 0 && existing[0].id !== pId) {
+                    throw new Error(`El dorsal ${dorsal} ya está siendo usado por ${existing[0].nombre}`)
+                }
+            }
+
             let fotoUrl = null
             if (file) fotoUrl = await uploadImage(file, 'jugadores', `${tournamentId}/${teamId}`)
             
-            await supabase.from('jugadores').insert([{
-                user_id: user.id, // PROTECCIÓN MULTI-TENANT
+            const payload = {
+                user_id: user.id,
                 torneo_id: tournamentId,
                 equipo_id: teamId,
                 nombre: fd.get('nombre'),
-                dorsal: fd.get('dorsal'),
+                dorsal: dorsal,
                 posicion: fd.get('posicion'),
-                foto_url: fotoUrl
-            }])
+                edad: fd.get('edad') ? parseInt(fd.get('edad')) : null,
+                fecha_nacimiento: fd.get('fecha_nacimiento') || null,
+                nacionalidad: fd.get('nacionalidad'),
+                goles: fd.get('goles') ? parseInt(fd.get('goles')) : 0,
+                asistencias: fd.get('asistencias') ? parseInt(fd.get('asistencias')) : 0,
+                partidos_jugados: fd.get('partidos_jugados') ? parseInt(fd.get('partidos_jugados')) : 0,
+                tarjetas_amarillas: fd.get('tarjetas_amarillas') ? parseInt(fd.get('tarjetas_amarillas')) : 0,
+                tarjetas_rojas: fd.get('tarjetas_rojas') ? parseInt(fd.get('tarjetas_rojas')) : 0
+            }
+
+            if (fotoUrl) payload.foto_url = fotoUrl
+
+            if (pId) {
+                // EDITAR
+                const { error } = await supabase.from('jugadores').update(payload).eq('id', pId)
+                if (error) throw error
+            } else {
+                // CREAR
+                const { error } = await supabase.from('jugadores').insert([payload])
+                if (error) throw error
+            }
+
             document.getElementById('playerModal').classList.add('hidden')
             e.target.reset()
+            btn.disabled = false; btn.innerText = 'GUARDAR JUGADOR ➔'
+            showToast(pId ? 'Jugador actualizado' : 'Jugador registrado con éxito')
             loadPlayers()
         } catch (err) {
-            alert(err.message)
-            btn.disabled = false; btn.innerText = 'GUARDAR ➔'
+            showToast(err.message, 'error')
+            btn.disabled = false; btn.innerText = 'GUARDAR JUGADOR ➔'
         }
     }
 
@@ -787,14 +971,18 @@ export const renderTournamentDetail = async (container, tournamentId) => {
         ]
 
         for(const up of updates) {
-            await supabase.from('cuadro_honor').upsert([{
+            const { error } = await supabase.from('cuadro_honor').upsert([{
                 torneo_id: tournamentId,
                 jornada: jornada,
                 tipo: up.t,
                 jugador_id: up.id
             }], { onConflict: 'torneo_id, jornada, tipo' })
+            if (error) {
+                showToast('Error al guardar: ' + error.message, 'error')
+                return
+            }
         }
-        alert('Reconocimientos guardados correctamente')
+        showToast('Reconocimientos guardados correctamente')
         loadHof()
     }
     loadHof()
@@ -1042,7 +1230,7 @@ export const renderTournamentDetail = async (container, tournamentId) => {
         .single()
 
     if (mErr || !m) {
-        alert('No se pudo cargar el partido: ' + (mErr?.message || 'Error desconocido'))
+        showToast('No se pudo cargar el partido', 'error')
         return
     }
 
@@ -1161,8 +1349,11 @@ export const renderTournamentDetail = async (container, tournamentId) => {
         modal.querySelectorAll('.btn-del-event').forEach(btn => {
            btn.onclick = async () => {
                const { error } = await supabase.from('eventos_partido').delete().eq('id', btn.dataset.id)
-               if (error) alert('Error al eliminar: ' + error.message)
-               else loadEvents()
+               if (error) showToast('Error al eliminar: ' + error.message, 'error')
+               else {
+                   showToast('Evento eliminado')
+                   loadEvents()
+               }
            }
         })
     }
@@ -1176,7 +1367,7 @@ export const renderTournamentDetail = async (container, tournamentId) => {
         const equipoId = fd.get('team')
         
         if (!jugadorId) {
-            alert('Selecciona un jugador primero.')
+            showToast('Selecciona un jugador primero.', 'info')
             return
         }
         
@@ -1192,7 +1383,7 @@ export const renderTournamentDetail = async (container, tournamentId) => {
         btn.disabled = false; btn.innerText = 'Registrar Evento ➔'
         
         if (error) {
-            alert('Error al registrar evento: ' + error.message)
+            showToast('Error al registrar evento: ' + error.message, 'error')
             return
         }
         loadEvents()
@@ -1306,7 +1497,7 @@ export const renderTournamentDetail = async (container, tournamentId) => {
             modal.remove()
             renderTabContent()
         } catch (err) {
-            alert('Error al guardar: ' + err.message)
+            showToast('Error al guardar: ' + err.message, 'error')
             btn.disabled = false; btn.innerText = 'GUARDAR PROGRAMACIÓN'
         }
     }
@@ -1386,17 +1577,31 @@ export const renderTournamentDetail = async (container, tournamentId) => {
             </div>
         `).join('') : '<p class="col-span-full text-center py-6 text-[10px] text-slate-600 uppercase font-black italic">No hay árbitros registrados.</p>'
 
-        container.querySelectorAll('.btn-del-sede').forEach(btn => btn.onclick = async () => {
-            if(confirm('¿Eliminar estadio?')) {
-                await supabase.from('sedes').delete().eq('id', btn.dataset.id)
-                loadInfra()
-            }
+        container.querySelectorAll('.btn-del-sede').forEach(btn => btn.onclick = () => {
+            showModal({
+                title: 'Eliminar Estadio',
+                message: '¿Estás seguro de eliminar este estadio? Podría haber partidos programados aquí.',
+                confirmText: 'ELIMINAR ESTADIO',
+                type: 'danger',
+                onConfirm: async () => {
+                    await supabase.from('sedes').delete().eq('id', btn.dataset.id)
+                    showToast('Estadio eliminado')
+                    loadInfra()
+                }
+            })
         })
-        container.querySelectorAll('.btn-del-ref').forEach(btn => btn.onclick = async () => {
-             if(confirm('¿Eliminar árbitro?')) {
-                await supabase.from('arbitros').delete().eq('id', btn.dataset.id)
-                loadInfra()
-            }
+        container.querySelectorAll('.btn-del-ref').forEach(btn => btn.onclick = () => {
+             showModal({
+                title: 'Eliminar Árbitro',
+                message: '¿Eliminar a este árbitro de la lista del torneo?',
+                confirmText: 'SÍ, ELIMINAR',
+                type: 'danger',
+                onConfirm: async () => {
+                    await supabase.from('arbitros').delete().eq('id', btn.dataset.id)
+                    showToast('Árbitro eliminado')
+                    loadInfra()
+                }
+             })
         })
     }
 
@@ -1419,9 +1624,10 @@ export const renderTournamentDetail = async (container, tournamentId) => {
             // Crear automáticamente un campo para mantener compatibilidad con el esquema (Problema 3)
             await supabase.from('campos').insert([{ sede_id: newSede.id, nombre: 'Cancha Principal', user_id: user.id }])
             e.target.reset()
+            showToast('Estadio registrado correctamente')
             loadInfra()
         } else {
-            alert(error.message)
+            showToast(error.message, 'error')
         }
     }
 
@@ -1506,11 +1712,19 @@ export const renderTournamentDetail = async (container, tournamentId) => {
         `).join('') : '<p class="text-center py-10 text-slate-700 italic text-[11px] font-black uppercase">No hay auspiciadores registrados.</p>'
 
         container.querySelectorAll('.btn-del-pat').forEach(btn => {
-            btn.onclick = async () => {
-                if(!confirm('¿Eliminar auspiciador?')) return
-                const newPats = tournament.patrocinadores.filter(x => x.id !== btn.dataset.id)
-                await supabase.from('torneos').update({ patrocinadores: newPats }).eq('id', tournamentId)
-                loadInitialData()
+            btn.onclick = () => {
+                showModal({
+                    title: 'Eliminar Auspiciador',
+                    message: '¿Retirar a este auspiciador del torneo?',
+                    confirmText: 'ELIMINAR',
+                    type: 'danger',
+                    onConfirm: async () => {
+                        const newPats = tournament.patrocinadores.filter(x => x.id !== btn.dataset.id)
+                        await supabase.from('torneos').update({ patrocinadores: newPats }).eq('id', tournamentId)
+                        showToast('Auspiciador retirado')
+                        loadInitialData()
+                    }
+                })
             }
         })
     }
@@ -1555,9 +1769,10 @@ export const renderTournamentDetail = async (container, tournamentId) => {
             }).eq('id', tournamentId)
             
             e.target.reset()
+            showToast('Auspiciador añadido con éxito')
             loadInitialData()
         } catch (err) {
-            alert(err.message)
+            showToast(err.message, 'error')
             btn.disabled = false; btn.innerText = 'AÑADIR AUSPICIADOR'
         }
     }

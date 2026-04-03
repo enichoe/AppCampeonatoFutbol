@@ -129,3 +129,33 @@ h1, h2, h3, h4, .impact-text {
 .tab-btn.active {
   @apply text-indigo-400 border-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.3)];
 }
+
+/* Notification System - Premium UI */
+#toast-container {
+  @apply fixed bottom-8 right-8 z-[9999] flex flex-col gap-4 max-w-sm w-full pointer-events-none;
+}
+
+.toast {
+  @apply pointer-events-auto flex items-center gap-4 p-5 rounded-2xl border border-white/10 bg-slate-900/90 backdrop-blur-2xl shadow-2xl animate-fade-in-right transform transition-all duration-500 overflow-hidden relative;
+}
+
+.toast::after {
+  content: '';
+  @apply absolute bottom-0 left-0 h-1 bg-current opacity-30;
+  animation: toast-progress var(--duration, 4s) linear forwards;
+}
+
+@keyframes toast-progress { 0% { width: 100%; } 100% { width: 0%; } }
+
+.toast-success { @apply border-neon/30 text-neon; }
+.toast-error { @apply border-red-500/30 text-red-500; }
+.toast-info { @apply border-indigo-500/30 text-indigo-400; }
+
+.modal-sys-overlay {
+  @apply fixed inset-0 z-[9000] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-md animate-fade-in;
+}
+
+.modal-sys-card {
+  @apply w-full max-w-md bg-slate-900 border border-white/10 rounded-[2.5rem] p-10 shadow-3xl text-center animate-scale-up;
+}
+

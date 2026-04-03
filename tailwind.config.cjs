@@ -25,6 +25,9 @@ module.exports = {
         'glow-pulse': 'glow-pulse 2s infinite ease-in-out',
         'float': 'float 6s ease-in-out infinite',
         'subtle-pulse': 'subtle-pulse 4s ease-in-out infinite',
+        'fade-in': 'fade-in 0.3s ease-out forwards',
+        'fade-in-right': 'fade-in-right 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+        'scale-up': 'scale-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
       },
       keyframes: {
         'glow-pulse': {
@@ -38,6 +41,18 @@ module.exports = {
         'subtle-pulse': {
           '0%, 100%': { transform: 'scale(1)' },
           '50%': { transform: 'scale(1.05)' },
+        },
+        'fade-in': {
+          'from': { opacity: 0 },
+          'to': { opacity: 1 }
+        },
+        'fade-in-right': {
+          'from': { opacity: 0, transform: 'translateX(20px) scale(0.95)' },
+          'to': { opacity: 1, transform: 'translateX(0) scale(1)' }
+        },
+        'scale-up': {
+          'from': { opacity: 0, transform: 'scale(0.95)' },
+          'to': { opacity: 1, transform: 'scale(1)' }
         }
       },
       boxShadow: {

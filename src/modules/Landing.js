@@ -13,7 +13,7 @@ export const renderLanding = (container) => {
             </div>
             <span class="text-xl md:text-3xl font-[1000] italic tracking-tighter text-white uppercase flex flex-col leading-none">
               <span class="text-neon drop-shadow-[0_0_10px_rgba(0,255,136,0.3)]">FÚTBOL</span>
-              <span class="text-[0.6em] tracking-[0.3em] text-slate-500">PLATFORM</span>
+              <span class="text-[0.6em] tracking-[0.3em] text-slate-500">APP</span>
             </span>
           </div>
 
