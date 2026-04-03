@@ -1,4 +1,5 @@
 import { supabase } from '../services/supabase.js'
+import { parsearFechaLocal, formatearFecha, formatearFechaHora } from '../utils/fechas.js'
 
 export const renderPublicTournament = async (container, params) => {
     // Cargar datos iniciales del torneo y recursos relacionados
@@ -62,7 +63,7 @@ export const renderPublicTournament = async (container, params) => {
     // HELPER: Renderiza una card de partido profesional (usado en Partidos y Posiciones)
     const renderPublicMatchCard = (m) => {
         const showScore = m.estado === 'en_juego' || m.estado === 'finalizado'
-        const hour = m.fecha_hora ? new Date(m.fecha_hora).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '--:--'
+        const hour = m.fecha_hora ? formatearFechaHora(m.fecha_hora).split(',')[1]?.trim() : '--:--'
         const evs = eventosPorPartido[m.id] || []
         const golesL = evs.filter(e => e.tipo === 'gol' && e.jugadores?.equipo_id === m.equipo_local_id)
         const golesA = evs.filter(e => e.tipo === 'gol' && e.jugadores?.equipo_id === m.equipo_visitante_id)

@@ -1,4 +1,5 @@
 import { supabase } from '../services/supabase.js'
+import { parsearFechaLocal, formatearFecha, formatearFechaHora } from '../utils/fechas.js'
 
 let _actualizandoLocalmente = false
 
@@ -170,7 +171,7 @@ function renderCardPartido(m) {
   const esPendiente  = m.estado === 'pendiente'
   const esEnJuego    = m.estado === 'en_juego'
   const esFinalizado = m.estado === 'finalizado'
-  const time = m.fecha_hora ? new Date(m.fecha_hora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'
+  const time = m.fecha_hora ? formatearFechaHora(m.fecha_hora) : '--:--'
   const venue = m.campo || m.sede || m.escenario || m.venue || 'Sede TBD'
 
   return `

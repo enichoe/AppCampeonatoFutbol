@@ -1,23 +1,38 @@
 import { supabase } from '../services/supabase.js'
 import { generateSlug } from '../utils/tournamentEngine.js'
+import { parsearFechaLocal, formatearFecha, formatearFechaHora } from '../utils/fechas.js'
 
 /**
  * Finaliza un torneo y guarda la foto del campeón
  */
-export async function finalizarTorneo(torneoId, equipoCampeonId, fotoUrl) {
+export async function finalizarTorneo(torneoId, { equipoCampeonId, fotoUrl } = {}) {
+  
+  // Subir foto primero si existe
+  let fotoCampeonUrl = null
+  if (fotoUrl instanceof File) {
+    fotoCampeonUrl = await subirFotoCampeon(torneoId, fotoUrl)
+    if (!fotoCampeonUrl) return false // error ya mostrado en subirFotoCampeon
+  }
+
+  const payload = {
+    estado:       'finalizado',
+    finalizado_at: new Date().toISOString()
+  }
+
+  // Solo agregar al payload si tienen valor — evitar enviar null
+  // a columnas que Supabase aún no reconoce en cache
+  if (equipoCampeonId) payload.campeon_equipo_id = equipoCampeonId
+  if (fotoCampeonUrl)  payload.foto_campeon_url  = fotoCampeonUrl
+
   const { error } = await supabase
     .from('torneos')
-    .update({
-      estado: 'finalizado',
-      finalizado_at: new Date().toISOString(),
-      campeon_equipo_id: equipoCampeonId ?? null,
-      foto_campeon_url:  fotoUrl ?? null
-    })
+    .update(payload)
     .eq('id', torneoId)
+    .eq('user_id', (await supabase.auth.getUser()).data.user.id)
 
   if (error) {
-    console.error('Error al finalizar torneo:', error.message)
-    mostrarToast('Error al finalizar el torneo: ' + error.message, 'error')
+    console.error('Error al finalizar:', error)
+    mostrarToast('Error al finalizar: ' + error.message, 'error')
     return false
   }
 
@@ -29,14 +44,18 @@ export async function finalizarTorneo(torneoId, equipoCampeonId, fotoUrl) {
  * Sube la foto del campeón al Storage
  */
 export async function subirFotoCampeon(torneoId, archivo) {
-  const ext      = archivo.name.split('.').pop()
-  const path     = `campeones/${torneoId}.${ext}`
+  const ext  = archivo.name.split('.').pop().toLowerCase()
+  const path = `campeones/${torneoId}-${Date.now()}.${ext}`
 
   const { error: uploadError } = await supabase.storage
-    .from('torneos')         // nombre del bucket
-    .upload(path, archivo, { upsert: true })
+    .from('torneos')          // nombre exacto del bucket en Supabase
+    .upload(path, archivo, {
+      upsert:      true,
+      contentType: archivo.type
+    })
 
   if (uploadError) {
+    console.error('Upload error:', uploadError)
     mostrarToast('Error al subir la foto: ' + uploadError.message, 'error')
     return null
   }

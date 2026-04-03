@@ -1,6 +1,7 @@
 import { supabase } from '../services/supabase.js'
 import * as engine from '../utils/tournamentEngine.js'
 import { uploadImage, createImageDropzone, setupDropzone } from '../utils/storage.js'
+import { parsearFechaLocal, formatearFecha, formatearFechaHora } from '../utils/fechas.js'
 
 export const renderTournamentDetail = async (container, tournamentId) => {
   let tournament = null
@@ -470,14 +471,19 @@ export const renderTournamentDetail = async (container, tournamentId) => {
                             if (fotoFile) fotoUrl = await uploadImage(fotoFile, 'torneos', `campeon/${tournamentId}`)
                             if (trofeoFile) trofeoUrl = await uploadImage(trofeoFile, 'torneos', `campeon/${tournamentId}`)
                             
-                            const { error } = await supabase.from('torneos').update({
+                            const payload = {
                                 estado: 'finalizado',
-                                campeon_nombre: fd.get('campeon_nombre'),
-                                foto_campeon_url: fotoUrl,
-                                foto_trofeo_url: trofeoUrl,
-                                frase_campeon: fd.get('frase_campeon'),
                                 finalizado_at: new Date().toISOString()
-                            }).eq('id', tournamentId)
+                            }
+
+                            if (fd.get('campeon_nombre')) payload.campeon_nombre = fd.get('campeon_nombre')
+                            if (fotoUrl) payload.foto_campeon_url = fotoUrl
+                            if (trofeoUrl) payload.foto_trofeo_url = trofeoUrl
+                            if (fd.get('frase_campeon')) payload.frase_campeon = fd.get('frase_campeon')
+
+                            const { error } = await supabase.from('torneos')
+                                .update(payload)
+                                .eq('id', tournamentId)
 
                             if (error) throw error
                             
@@ -901,7 +907,7 @@ export const renderTournamentDetail = async (container, tournamentId) => {
 
         matches.forEach(m => {
             if (m.fecha_hora) {
-                const day = new Date(m.fecha_hora).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+                const day = formatearFecha(m.fecha_hora)
                 if (!agenda[day]) agenda[day] = []
                 agenda[day].push(m)
             } else {
@@ -950,9 +956,9 @@ export const renderTournamentDetail = async (container, tournamentId) => {
         <div class="card !p-0 overflow-hidden border-white/5 bg-slate-900/60 relative group hover:border-indigo-500/30 transition-all">
             <!-- HEADER INFO -->
             <div class="px-4 py-3 bg-white/5 border-b border-white/5 flex items-center justify-between text-[10px] uppercase font-black tracking-widest">
-                ${date ? `
+                ${m.fecha_hora ? `
                     <div class="flex items-center gap-2 text-indigo-400 italic">
-                        <span>${date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} HRS</span>
+                        <span>${formatearFechaHora(m.fecha_hora).split(',')[1]?.trim() || ''} HRS</span>
                     </div>
                 ` : `<span class="text-slate-600">PENDIENTE DE FECHA</span>`}
                 <span class="text-slate-500">${m.fase} ${m.jornada ? '• ' + m.jornada : ''}</span>
