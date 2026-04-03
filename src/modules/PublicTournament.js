@@ -6,7 +6,7 @@ import { state } from '../main.js'
 export const renderPublicTournament = async (container, params) => {
     // Cargar datos iniciales del torneo y recursos relacionados
     const slug = params?.slug || params
-    let torneo = null, grupos = [], tabla = [], partidos = [], equipos = [], eventos = [], jugadores = []
+    let torneo = null, grupos = [], tabla = [], partidos = [], equipos = [], eventos = [], jugadores = [], allMatches = []
     try {
         const { data: t, error: errT } = await supabase.from('torneos').select('*').eq('slug', slug).maybeSingle()
         if (errT || !t) {
@@ -32,9 +32,20 @@ export const renderPublicTournament = async (container, params) => {
         ])
 
         grupos = g || []
-        partidos = p || []
+        allMatches = p || []
         equipos = eq || []
         jugadores = j || []
+
+        // Separar partidos: Resultados (finalizados) vs Próximos (pendientes)
+        const partidosFinalizados = allMatches
+            .filter(m => m.estado === 'finalizado')
+            .sort((a,b) => new Date(b.fecha_hora || 0) - new Date(a.fecha_hora || 0)) // DESC
+        
+        const partidosProximos = allMatches
+            .filter(m => m.estado !== 'finalizado')
+            .sort((a,b) => new Date(a.fecha_hora || '9999-12-31') - new Date(b.fecha_hora || '9999-12-31')) // ASC
+
+        partidos = { finalizados: partidosFinalizados, proximos: partidosProximos }
 
         let rawTabla = tab || []
         const enTabla = new Set(rawTabla.map(x => x.equipo_id))
@@ -57,7 +68,7 @@ export const renderPublicTournament = async (container, params) => {
         console.table(jugadores.slice(0,5).map(j => ({ nombre: j.nombre, foto_url: j.foto_url, ok: !!j.foto_url?.startsWith('http') })))
         console.groupEnd()
 
-        const partidoIds = partidos.map(p => p.id)
+        const partidoIds = allMatches.map(p => p.id)
         if (partidoIds.length > 0) {
             const { data: evData } = await supabase
                 .from('eventos_partido')
@@ -99,7 +110,9 @@ export const renderPublicTournament = async (container, params) => {
 
     const renderPublicMatchCard = (m) => {
         const showScore = m.estado === 'en_juego' || m.estado === 'finalizado'
-        const hour = m.fecha_hora ? formatearFechaHora(m.fecha_hora).split(',')[1]?.trim() : '--:--'
+        const hour = m.fecha_hora 
+            ? new Date(m.fecha_hora).toLocaleTimeString('es-PE', { timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit', hour12: true }) 
+            : '--:--'
         const evs = eventosPorPartido[m.id] || []
         const localEvents = evs.filter(e => e.jugadores?.equipo_id === m.equipo_local_id)
         const visitEvents = evs.filter(e => e.jugadores?.equipo_id === m.equipo_visitante_id)
@@ -111,11 +124,15 @@ export const renderPublicTournament = async (container, params) => {
             </div>
         `).join('')
 
+        const shortDate = m.fecha_hora 
+            ? new Date(m.fecha_hora).toLocaleDateString('es-PE', { timeZone: 'America/Lima', day: 'numeric', month: 'short' }).toUpperCase() 
+            : 'TBD'
+
         return `
         <div class="match-fifa-card animate-fade">
             <div class="m-fifa-header">
                 <div class="m-fifa-badge ${m.estado === 'en_juego' ? 'live' : m.estado === 'finalizado' ? 'done' : ''}">
-                    ${m.estado === 'en_juego' ? 'LIVE' : m.estado === 'finalizado' ? 'FINAL' : 'UPCOMING'}
+                    ${m.estado === 'en_juego' ? 'LIVE' : m.estado === 'finalizado' ? 'FINAL' : shortDate}
                 </div>
                 <div class="m-fifa-time">${hour}</div>
             </div>
@@ -617,7 +634,7 @@ export const renderPublicTournament = async (container, params) => {
                     <span class="ea-stat-label">EQUIPOS</span>
                 </div>
                 <div class="ea-stat-item">
-                    <span class="ea-stat-val">${partidos.length}</span>
+                    <span class="ea-stat-val">${allMatches.length}</span>
                     <span class="ea-stat-label">PARTIDOS</span>
                 </div>
                 <div class="ea-stat-item">
@@ -631,7 +648,7 @@ export const renderPublicTournament = async (container, params) => {
         <nav class="ea-nav">
             <div class="ea-segmented">
                 <button class="ea-nav-btn ${!state.activeTab || state.activeTab === 'posiciones' ? 'active' : ''}" data-tab="posiciones">Clasificación</button>
-                <button class="ea-nav-btn ${state.activeTab === 'partidos' ? 'active' : ''}" data-tab="partidos">Partidos</button>
+                <button class="ea-nav-btn ${state.activeTab === 'partidos' ? 'active' : ''}" data-tab="partidos">Resultados</button>
                 <button class="ea-nav-btn ${state.activeTab === 'equipos' ? 'active' : ''}" data-tab="equipos">Clubes</button>
                 <button class="ea-nav-btn ${state.activeTab === 'estadisticas' ? 'active' : ''}" data-tab="estadisticas">Líderes</button>
             </div>
@@ -643,22 +660,45 @@ export const renderPublicTournament = async (container, params) => {
                 <div class="ea-standings-container">
                     ${renderPosicionesEA(grupos, tabla)}
                 </div>
+
+                <!-- PRÓXIMOS PARTIDOS (Schedule) -->
+                ${partidos.proximos.length > 0 ? `
+                    <div class="ea-section-header mt-12">
+                        <div class="ea-section-marker" style="background:var(--cyan)"></div>
+                        <h2 class="ea-section-title">Próximos Partidos</h2>
+                    </div>
+                    <div class="max-w-4xl mx-auto">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${partidos.proximos.map(m => renderPublicMatchCard(m)).join('')}
+                        </div>
+                    </div>
+                ` : ''}
                 
-                ${renderKnockoutPhasesFIFA(partidos)}
+                ${renderKnockoutPhasesFIFA(allMatches)}
                 
-                <div class="px-6 py-10">
-                    <p class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-600 mb-6 text-center">Partrocinadores Oficiales</p>
-                    <div class="flex flex-wrap justify-center gap-8 opacity-40 grayscale filter hover:grayscale-0 transition-all">
+                <!-- AUSPICIADORES MEJORADOS -->
+                <div class="px-6 py-16 mt-16 border-t border-white/5">
+                    <p class="text-[10px] font-black uppercase tracking-[0.4em] text-cyan mb-10 text-center italic drop-shadow-[0_0_10px_rgba(0,212,255,0.3)]">Patrocinadores Oficiales</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10 items-center justify-items-center">
                         ${torneo.patrocinadores?.map(p => `
-                            <img src="${p.logo_url}" class="h-6 object-contain" alt="${p.nombre}">
-                        `).join('') || ''}
+                            <div class="group relative flex flex-col items-center">
+                                <div class="w-24 h-24 md:w-32 md:h-32 bg-white/5 border border-white/10 rounded-3xl p-5 flex items-center justify-center backdrop-blur-xl transition-all duration-500 hover:scale-110 hover:border-cyan/50 hover:bg-cyan/5">
+                                    <img src="${p.logo_url}" class="max-w-full max-h-full object-contain pointer-events-none transition-transform duration-500 group-hover:rotate-3" alt="${p.nombre}">
+                                    <!-- Glow effect hover -->
+                                    <div class="absolute inset-0 bg-cyan/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full -z-10"></div>
+                                </div>
+                                <span class="mt-4 text-[9px] font-black uppercase tracking-wider text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity">${p.nombre}</span>
+                            </div>
+                        `).join('') || `
+                            <p class="col-span-full text-center text-slate-700 text-[10px] font-black italic uppercase tracking-widest">Apoya el talento local</p>
+                        `}
                     </div>
                 </div>
             </section>
 
             <!-- SECCIÓN PARTIDOS -->
             <section id="section-partidos" class="tab-content animate-fade ${state.activeTab !== 'partidos' ? 'hidden' : ''}">
-                ${renderPartidosProfessionalFIFA(partidos)}
+                ${renderPartidosProfessionalFIFA(partidos.finalizados)}
             </section>
 
             <!-- SECCIÓN CLUBES -->
@@ -904,53 +944,75 @@ export const renderPublicTournament = async (container, params) => {
                     const { data: players } = await supabase.from('jugadores_publicos')
                         .select('*').eq('equipo_id', teamId).order('dorsal', { ascending: true })
 
+                    // Calcular estadísticas reales en base a los eventos cargados
+                    const processedPlayers = (players || []).map(p => {
+                        const playerEvents = eventos.filter(ev => ev.jugador_id === p.id)
+                        return {
+                            ...p,
+                            golesReal: playerEvents.filter(ev => ev.tipo === 'gol').length,
+                            amarillasReal: playerEvents.filter(ev => ev.tipo === 'amarilla').length,
+                            rojasReal: playerEvents.filter(ev => ev.tipo === 'roja').length
+                        }
+                    })
+
                     const listEl = document.getElementById('p-l-modal')
                     if (!listEl) return
-                    if (!players || players.length === 0) {
+                    if (!processedPlayers.length) {
                         listEl.innerHTML = `<p class="py-10 text-[10px] font-bold text-slate-600 uppercase text-center">No hay registros</p>`
                         return
                     }
 
                     listEl.innerHTML = `
-                        <div class="overflow-x-auto -mx-4 px-4 no-scrollbar">
-                            <table class="w-full text-left border-collapse min-w-[500px]">
-                                <thead>
-                                    <tr class="text-[8px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5">
-                                        <th class="py-3 px-2">Jugador / Nac.</th>
-                                        <th class="py-3 px-2 text-center">#</th>
-                                        <th class="py-3 px-2">Edad</th>
-                                        <th class="py-3 px-2">Pos</th>
-                                        <th class="py-3 px-2 text-center text-cyan">G</th>
-                                        <th class="py-3 px-2 text-center text-cyan">A</th>
-                                        <th class="py-3 px-2 text-center">PJ</th>
-                                        <th class="py-3 px-2 text-center text-secondary">TA</th>
-                                        <th class="py-3 px-2 text-center text-red-neon">TR</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-white/5">
-                                    ${players.map(p => `
-                                        <tr class="text-[10px] font-bold">
-                                            <td class="py-3 px-2">
-                                                <div class="flex items-center gap-2">
-                                                    ${renderFotoJugador(p.foto_url, p.nombre, 32)}
-                                                    <div class="flex flex-col">
-                                                        <span class="text-white uppercase truncate max-w-[120px] font-black italic">${p.nombre}</span>
-                                                        <span class="text-[7px] text-slate-500 uppercase tracking-tighter font-black">${p.nacionalidad || 'S/N'}</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="py-3 px-2 text-center text-cyan font-black italic">#${p.dorsal || '--'}</td>
-                                            <td class="py-3 px-2 text-center text-slate-400 font-black italic">${p.edad || '--'}</td>
-                                            <td class="py-3 px-2 text-slate-400 uppercase text-[8px] italic">${p.posicion || '--'}</td>
-                                            <td class="py-3 px-2 text-center text-white font-black italic bg-white/5 rounded">${p.goles || 0}</td>
-                                            <td class="py-3 px-2 text-center text-white/50">${p.asistencias || 0}</td>
-                                            <td class="py-3 px-2 text-center text-slate-500">${p.partidos_jugados || 0}</td>
-                                            <td class="py-3 px-2 text-center text-secondary">${p.tarjetas_amarillas || 0}</td>
-                                            <td class="py-3 px-2 text-center text-red-neon">${p.tarjetas_rojas || 0}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
+                        <div class="space-y-3 pb-6">
+                            ${processedPlayers.map(p => `
+                                <div class="relative group overflow-hidden bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between animate-fade transition-all hover:bg-white/[0.08] hover:border-cyan/30">
+                                    <!-- Player Face + Main Info -->
+                                    <div class="flex items-center gap-4">
+                                        <div class="relative">
+                                            <div class="absolute inset-0 bg-cyan/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                            <div class="relative z-10 w-12 h-12 md:w-16 md:h-16 rounded-xl overflow-hidden border border-white/10 bg-slate-800">
+                                                ${renderFotoJugador(p.foto_url, p.nombre, 64)}
+                                            </div>
+                                            <div class="absolute -bottom-2 -right-2 z-20 bg-cyan text-black px-2 py-0.5 rounded-lg text-[10px] font-black italic shadow-lg">
+                                                #${p.dorsal || '--'}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-white font-black uppercase italic text-xs md:text-base leading-tight tracking-tighter">${p.nombre}</h4>
+                                            <div class="flex items-center gap-2 mt-0.5">
+                                                <span class="text-[7px] md:text-[9px] font-black uppercase text-slate-500">${p.nacionalidad || 'S/N'}</span>
+                                                <span class="w-1 h-1 bg-slate-700 rounded-full"></span>
+                                                <span class="text-[7px] md:text-[9px] font-black uppercase text-cyan italic">${p.posicion || 'S/P'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Real Time Stats Grid -->
+                                    <div class="flex items-center gap-1.5 md:gap-3">
+                                        <div class="flex flex-col items-center justify-center bg-white/5 rounded-lg py-1.5 px-2 min-w-[35px] md:min-w-[45px] border border-white/5">
+                                            <span class="text-white font-black italic text-xs md:text-sm leading-none">${p.golesReal}</span>
+                                            <span class="text-[5px] md:text-[7px] font-black text-slate-500 uppercase mt-0.5">GOL</span>
+                                        </div>
+                                        <div class="flex flex-col items-center justify-center py-1 px-1.5 min-w-[25px] md:min-w-[35px]">
+                                            <span class="text-secondary font-black italic text-xs md:text-sm leading-none">${p.amarillasReal}</span>
+                                            <span class="text-[5px] md:text-[7px] font-black text-slate-500 uppercase mt-0.5">TA</span>
+                                        </div>
+                                        <div class="flex flex-col items-center justify-center py-1 px-1.5 min-w-[25px] md:min-w-[35px]">
+                                            <span class="text-red-neon font-black italic text-xs md:text-sm leading-none">${p.rojasReal}</span>
+                                            <span class="text-[5px] md:text-[7px] font-black text-slate-500 uppercase mt-0.5">TR</span>
+                                        </div>
+                                        <div class="hidden sm:flex flex-col items-center justify-center py-1 px-1.5 min-w-[25px]">
+                                            <span class="text-slate-400 font-black italic text-xs md:text-sm leading-none">${p.partidos_jugados || 0}</span>
+                                            <span class="text-[5px] md:text-[7px] font-black text-slate-500 uppercase mt-0.5">PJ</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Age Overlay for Desktop -->
+                                    <div class="absolute top-2 right-2 text-[7px] font-black text-white/10 uppercase italic">
+                                        ${p.edad ? `${p.edad} AÑOS` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
                         </div>
                     `
                 } catch (err) { console.error(err) }
