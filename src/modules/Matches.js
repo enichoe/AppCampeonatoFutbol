@@ -8,12 +8,12 @@ let _actualizandoLocalmente = false
  */
 export function mostrarToast(mensaje, tipo = 'info') {
   const toast = document.createElement('div')
-  toast.className = `fixed bottom-6 right-6 px-6 py-4 rounded-2xl text-white font-bold shadow-2xl z-[2000] border border-white/10 flex items-center gap-3 animate-fade-in transition-all duration-500`
+  toast.className = `fixed bottom-6 right-6 px-6 py-4 rounded-2xl text-white font-black shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[2000] border border-white/5 flex items-center gap-4 animate-fade-in transition-all duration-500 backdrop-blur-3xl`
   
   const bgColors = {
-    success: 'bg-emerald-600',
-    error: 'bg-rose-600',
-    info: 'bg-indigo-600'
+    success: 'bg-emerald-600/90',
+    error: 'bg-rose-600/90',
+    info: 'bg-indigo-600/90'
   }
   
   toast.classList.add(bgColors[tipo] || bgColors.info)
@@ -21,8 +21,8 @@ export function mostrarToast(mensaje, tipo = 'info') {
   const icon = tipo === 'success' ? '✓' : tipo === 'error' ? '✕' : 'ℹ'
   
   toast.innerHTML = `
-    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-white/20 text-xs">${icon}</span>
-    <span class="text-sm tracking-tight">${mensaje}</span>
+    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-white/20 text-[10px] font-black">${icon}</span>
+    <span class="text-[10px] uppercase tracking-widest italic">${mensaje}</span>
   `
   
   document.body.appendChild(toast)
@@ -64,10 +64,13 @@ function _patchCardPartido(id, estado, gl, gv) {
       estado === 'en_juego'   ? 'En juego'   : 'Pendiente'
     
     // Reset classes and apply based on state
-    badge.className = 'text-xs font-medium px-3 py-1 rounded-full'
-    if (estado === 'finalizado') badge.classList.add('bg-green-500', 'text-white')
-    else if (estado === 'en_juego') badge.classList.add('bg-amber-500', 'text-white', 'animate-pulse')
-    else badge.classList.add('bg-slate-600', 'text-slate-300')
+    badge.className = 'badge'
+    if (estado === 'finalizado') badge.classList.add('badge-success')
+    else if (estado === 'en_juego') {
+        badge.classList.add('badge-pending', 'animate-pulse')
+        badge.textContent = 'En Juego'
+    }
+    else badge.classList.add('badge-danger')
   }
 
   // Botones — ocultar/mostrar según estado
@@ -223,10 +226,10 @@ function renderCardPartido(m) {
       <!-- Badge Estado -->
       <div class="flex justify-center mb-6">
         <span data-rol="estado-badge"
-              class="text-xs font-medium px-3 py-1 rounded-full
-                     ${esFinalizado ? 'bg-green-500 text-white' :
-                       esEnJuego    ? 'bg-amber-500 text-white animate-pulse' :
-                                       'bg-slate-600 text-slate-300'}">
+              class="badge
+                     ${esFinalizado ? 'badge-success' :
+                       esEnJuego    ? 'badge-pending animate-pulse' :
+                                       'badge-danger'}">
           ${esFinalizado ? 'Finalizado' : esEnJuego ? 'En juego' : 'Pendiente'}
         </span>
       </div>

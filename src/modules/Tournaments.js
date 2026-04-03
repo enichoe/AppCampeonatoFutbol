@@ -91,21 +91,30 @@ export const renderTournaments = async (container) => {
 
     <!-- Stats Row -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-12">
-        <div class="p-4 md:p-6 bg-slate-900/50 border border-white/5 rounded-[2rem]">
-            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Ligas</p>
-            <p class="text-2xl md:text-3xl font-black italic text-white" id="statTotal">--</p>
+        <div class="p-5 md:p-8 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[2rem] relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            </div>
+            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 relative z-10">Total Ligas</p>
+            <p class="text-3xl md:text-5xl font-[1000] italic text-white tracking-tighter relative z-10" id="statTotal">--</p>
         </div>
-        <div class="p-4 md:p-6 bg-slate-900/50 border border-white/5 rounded-[2rem]">
-            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Equipos</p>
-            <p class="text-2xl md:text-3xl font-black italic text-white" id="statTeams">--</p>
+        <div class="p-5 md:p-8 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[2rem] relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            </div>
+            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 relative z-10">Equipos</p>
+            <p class="text-3xl md:text-5xl font-[1000] italic text-white tracking-tighter relative z-10" id="statTeams">--</p>
         </div>
-        <div class="p-4 md:p-6 bg-slate-900/50 border border-indigo-500/20 rounded-[2rem] bg-indigo-500/5">
-            <p class="text-[8px] md:text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Plan Actual</p>
-            <p class="text-xs md:text-xl font-black italic text-white uppercase tracking-tighter sm:mt-2">Free Edition</p>
+        <div class="p-5 md:p-8 bg-indigo-600/5 backdrop-blur-xl border border-indigo-500/20 rounded-[2rem] relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-4 opacity-10">
+                <svg class="w-12 h-12 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <p class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1 relative z-10">Plan Actual</p>
+            <p class="text-xl md:text-2xl font-[1000] italic text-white uppercase tracking-tighter mt-2 relative z-10">Free Edition</p>
         </div>
-        <div class="p-4 md:p-6 bg-slate-900/50 border border-white/5 rounded-[2rem]">
-            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Uptime</p>
-            <p class="text-xs md:text-xl font-black italic text-emerald-400 uppercase tracking-tighter sm:mt-2">Sistema OK</p>
+        <div class="p-5 md:p-8 bg-emerald-600/5 backdrop-blur-xl border border-emerald-500/10 rounded-[2rem] relative overflow-hidden group">
+            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 relative z-10">Servicios</p>
+            <p class="text-xl md:text-2xl font-[1000] italic text-emerald-400 uppercase tracking-tighter mt-2 relative z-10">Cloud OK</p>
         </div>
     </div>
 
@@ -251,32 +260,35 @@ export const renderTournaments = async (container) => {
     listContainer.innerHTML = data.map(t => {
       const publicLink = `${window.location.origin}/torneo/${t.slug || t.id}`
       return `
-        <div class="card !p-0 overflow-hidden border-white/5 bg-slate-900/40 hover:bg-slate-900 group transition-all duration-500 rounded-[2.5rem]">
-             <div class="relative h-40 bg-gradient-to-br from-indigo-900/30 via-slate-900 to-slate-950 flex items-center justify-center p-8 overflow-hidden">
-                <div class="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+        <div class="card !p-0 overflow-hidden border-white/5 bg-slate-900/20 hover:bg-slate-900/40 group transition-all duration-700 rounded-[2.5rem] relative">
+             <!-- Interactive Border Glow -->
+             <div class="absolute inset-0 border border-white/0 group-hover:border-indigo-500/20 rounded-[2.5rem] transition-colors duration-700 pointer-events-none"></div>
+             
+             <div class="relative h-48 bg-gradient-to-br from-indigo-900/20 via-slate-950 to-slate-950 flex items-center justify-center p-12 overflow-hidden">
+                <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
                 ${t.logo_url 
-                  ? `<img src="${t.logo_url}" class="w-24 h-24 object-contain drop-shadow-2xl z-10 transition-transform duration-700 group-hover:scale-110" alt="Logo">`
-                  : `<div class="w-20 h-20 rounded-[2rem] bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-3xl font-black text-indigo-500 z-10 shadow-2xl">${t.nombre.charAt(0).toUpperCase()}</div>`
+                  ? `<img src="${t.logo_url}" class="w-28 h-28 object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)] z-10 transition-transform duration-1000 group-hover:scale-110" alt="Logo">`
+                  : `<div class="w-24 h-24 rounded-[2.5rem] bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-4xl font-[1000] text-indigo-500 z-10 shadow-2xl">${t.nombre.charAt(0).toUpperCase()}</div>`
                 }
                 
-                <div class="absolute top-5 right-5 z-20 flex gap-2">
+                <div class="absolute top-6 right-6 z-20 flex gap-2 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
                    <button class="p-3 bg-white/5 hover:bg-indigo-600 text-slate-400 hover:text-white rounded-2xl btn-copy transition-all group/btn" data-link="${publicLink}" title="Copiar Link Público">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
                    </button>
                    <button class="p-3 bg-white/5 hover:bg-red-600 text-slate-400 hover:text-white rounded-2xl btn-delete transition-all" data-id="${t.id}">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                    </button>
                 </div>
              </div>
-             <div class="p-8">
-                <div class="flex items-center gap-3 mb-4">
-                   <span class="text-[9px] font-black uppercase bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full border border-indigo-500/20">${t.tipo.replace('_', ' ')}</span>
-                   <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest">${t.estado || 'Activo'}</span>
+             <div class="p-10">
+                <div class="flex items-center gap-3 mb-5">
+                   <span class="text-[8px] font-black uppercase bg-indigo-500/10 text-indigo-400 px-3 py-1.5 rounded-full border border-indigo-500/10 tracking-widest">${t.tipo.replace('_', ' ')}</span>
+                   <span class="text-[8px] font-black text-slate-600 uppercase tracking-widest">${t.estado || 'Activo'}</span>
                 </div>
-                <h3 class="text-2xl font-black text-white italic line-clamp-1 uppercase tracking-tighter mb-2">${t.nombre}</h3>
-                <p class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-8">SLUG: <span class="text-slate-400">${t.slug || '---'}</span></p>
+                <h3 class="text-2xl md:text-3xl font-[1000] text-white italic line-clamp-1 uppercase tracking-tighter mb-2 group-hover:text-indigo-400 transition-colors">${t.nombre}</h3>
+                <p class="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em] mb-10">Región: <span class="text-slate-400">${t.lugar || 'Perú'}</span></p>
                 <div class="flex gap-4">
-                    <button class="btn-primary flex-1 !h-14 !text-[10px] font-black btn-details uppercase tracking-[0.2em] shadow-indigo-600/10" data-id="${t.id}">
+                    <button class="btn-primary flex-1 !h-14 !text-[10px] font-black btn-details uppercase tracking-[0.3em] shadow-indigo-600/10 group-hover:scale-[1.02] transition-transform" data-id="${t.id}">
                         Gestionar Liga ➔
                     </button>
                 </div>

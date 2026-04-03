@@ -8,10 +8,10 @@ export const renderTeams = async (container) => {
          <h2 class="text-3xl font-black text-white italic tracking-tighter uppercase">Clubes & Equipos</h2>
          <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Gestión de plantillas y registros</p>
        </div>
-       <button id="btnCreateTeam" class="btn-primary w-full md:w-auto shadow-indigo-600/40">
-         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-         <span class="uppercase tracking-widest text-xs">Registrar Equipo</span>
-       </button>
+        <button id="btnCreateTeam" class="btn-primary w-full md:w-auto shadow-indigo-600/20 group">
+          <svg class="w-5 h-5 group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+          <span class="uppercase tracking-[0.2em] text-[10px] font-black ml-2">Registrar Club</span>
+        </button>
     </div>
 
     <!-- Filtro por Torneo -->
@@ -71,13 +71,21 @@ export const renderTeams = async (container) => {
     </div>
   
     <!-- Modal Roster (Ver jugadores) -->
-    <div id="teamRosterModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/80 backdrop-blur-sm">
-        <div class="w-full max-w-md card p-6" id="teamRosterContainer">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold">Plantilla</h3>
-                <button id="closeRosterModal" class="text-slate-400">&times;</button>
+    <div id="teamRosterModal" class="hidden fixed inset-0 z-[300] flex items-center justify-center p-0 md:p-6 bg-slate-950/95 backdrop-blur-3xl transition-all duration-300">
+        <div class="card w-full h-full md:h-auto md:max-w-xl shadow-2xl flex flex-col relative overflow-hidden" id="teamRosterContainer">
+            <!-- Ambient Glow -->
+            <div class="absolute -top-20 -right-20 w-40 h-40 bg-indigo-600/10 blur-[60px] rounded-full"></div>
+            
+            <div class="flex justify-between items-center mb-8 p-6 md:p-0 relative z-10">
+                <div>
+                   <h3 class="text-2xl font-black italic uppercase tracking-tighter">Planilla del Club</h3>
+                   <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">Lista oficial de jugadores registrados</p>
+                </div>
+                <button id="closeRosterModal" class="p-3 bg-white/5 rounded-2xl text-slate-500 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
             </div>
-            <div id="teamRosterContent" class="space-y-2 text-sm text-slate-400">Cargando...</div>
+            <div id="teamRosterContent" class="space-y-4 overflow-y-auto max-h-[60vh] p-6 md:p-0 no-scrollbar relative z-10">Cargando datos maestros...</div>
         </div>
     </div>
   `

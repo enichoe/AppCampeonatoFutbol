@@ -8,19 +8,22 @@ export const renderDashboard = (container, view, params) => {
   container.innerHTML = `
     <div class="flex h-screen overflow-hidden bg-slate-950">
       <!-- Sidebar Desktop -->
-      <aside class="w-72 bg-slate-900 border-r border-white/5 flex flex-col transition-all duration-300 transform md:translate-x-0 -translate-x-full fixed md:relative z-50 h-full" id="sidebar">
-        <div class="p-8 flex items-center gap-4 cursor-pointer" onclick="navigate('landing')">
-          <div class="p-2.5 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-600/20">
+      <aside class="w-72 bg-slate-950 border-r border-white/5 flex flex-col transition-all duration-500 transform md:translate-x-0 -translate-x-full fixed md:relative z-50 h-full overflow-hidden" id="sidebar">
+        <!-- Ambient Glow -->
+        <div class="absolute -top-40 -left-40 w-80 h-80 bg-indigo-600/10 blur-[100px] rounded-full pointer-events-none"></div>
+        
+        <div class="p-8 flex items-center gap-4 cursor-pointer relative z-10 hover:opacity-80 transition-opacity" onclick="navigate('landing')">
+          <div class="p-2.5 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl shadow-lg shadow-indigo-600/20">
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
             </svg>
           </div>
           <div>
-            <span class="text-xl font-black text-white tracking-tighter italic block">Fútbol App</span>
-            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest -mt-1 block">Admin Console</span>
+            <span class="text-xl font-[1000] text-white tracking-tighter italic block uppercase leading-none">Fútbol App</span>
+            <span class="text-[9px] font-black text-indigo-400/60 uppercase tracking-[0.3em] mt-1 block">Pro Console</span>
           </div>
-          <button id="closeSidebar" class="md:hidden ml-auto p-2 text-slate-500">
-             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          <button id="closeSidebar" class="md:hidden ml-auto p-3 bg-white/5 rounded-2xl text-slate-500 hover:text-white transition-all">
+             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
         </div>
 
@@ -50,9 +53,9 @@ export const renderDashboard = (container, view, params) => {
           </button>
         </nav>
 
-        <div class="p-6">
-          <button id="btnLogout" class="flex items-center gap-4 w-full px-5 py-4 text-slate-500 hover:bg-red-500/10 hover:text-red-400 rounded-2xl transition-all font-bold text-sm tracking-tight border border-transparent hover:border-red-500/10">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+        <div class="p-6 mt-auto">
+          <button id="btnLogout" class="flex items-center gap-4 w-full px-5 py-4 text-slate-500 hover:bg-red-500/10 hover:text-red-400 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest border border-transparent hover:border-red-500/10 group">
+            <svg class="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
             <span>Cerrar Sesión</span>
           </button>
         </div>
@@ -87,22 +90,22 @@ export const renderDashboard = (container, view, params) => {
       </main>
 
       <!-- Bottom Navigation Mobile -->
-      <nav class="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-slate-900/90 backdrop-blur-2xl border-t border-white/5 flex items-center justify-around px-2 z-[100]">
-          <button id="bottomDashboard" class="flex flex-col items-center justify-center flex-1 gap-1 ${view === 'dashboard' ? 'text-indigo-400' : 'text-slate-500'}">
+      <nav class="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-slate-950/80 backdrop-blur-3xl border-t border-white/5 flex items-center justify-around px-2 z-[100] pb-safe">
+          <button id="bottomDashboard" class="flex flex-col items-center justify-center flex-1 gap-1 transition-all ${view === 'dashboard' ? 'text-neon scale-110 drop-shadow-[0_0_8px_rgba(0,255,136,0.5)]' : 'text-slate-500'}">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-              <span class="text-[9px] font-black uppercase tracking-tighter">Inicio</span>
+              <span class="text-[8px] font-black uppercase tracking-tighter">Inicio</span>
           </button>
-          <button id="bottomTournaments" class="flex flex-col items-center justify-center flex-1 gap-1 ${view === 'torneos' || view === 'detalle_torneo' ? 'text-indigo-400' : 'text-slate-500'}">
+          <button id="bottomTournaments" class="flex flex-col items-center justify-center flex-1 gap-1 transition-all ${view === 'torneos' || view === 'detalle_torneo' ? 'text-indigo-400 scale-110 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]' : 'text-slate-500'}">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-              <span class="text-[9px] font-black uppercase tracking-tighter">Torneos</span>
+              <span class="text-[8px] font-black uppercase tracking-tighter">Torneos</span>
           </button>
-          <button id="bottomTeams" class="flex flex-col items-center justify-center flex-1 gap-1 ${view === 'equipos' ? 'text-indigo-400' : 'text-slate-500'}">
+          <button id="bottomTeams" class="flex flex-col items-center justify-center flex-1 gap-1 transition-all ${view === 'equipos' ? 'text-indigo-400 scale-110' : 'text-slate-500'}">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-              <span class="text-[9px] font-black uppercase tracking-tighter">Equipos</span>
+              <span class="text-[8px] font-black uppercase tracking-tighter">Equipos</span>
           </button>
-          <button id="bottomMatches" class="flex flex-col items-center justify-center flex-1 gap-1 ${view === 'partidos' ? 'text-indigo-400' : 'text-slate-500'}">
+          <button id="bottomMatches" class="flex flex-col items-center justify-center flex-1 gap-1 transition-all ${view === 'partidos' ? 'text-indigo-400 scale-110' : 'text-slate-500'}">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-              <span class="text-[9px] font-black uppercase tracking-tighter">Partidos</span>
+              <span class="text-[8px] font-black uppercase tracking-tighter">Partidos</span>
           </button>
       </nav>
     </div>
@@ -110,10 +113,10 @@ export const renderDashboard = (container, view, params) => {
     <!-- Estilos específicos de la sidebar -->
     <style>
       .sidebar-item {
-        @apply flex items-center gap-4 w-full px-5 py-4 text-slate-500 hover:bg-white/5 hover:text-white rounded-[1.25rem] transition-all font-bold text-sm tracking-tight border border-transparent;
+        @apply flex items-center gap-4 w-full px-5 py-4 text-slate-500 hover:bg-white/5 hover:text-white rounded-[1.25rem] transition-all font-[1000] text-[10px] uppercase tracking-widest border border-transparent italic;
       }
       .sidebar-item.active {
-        @apply bg-indigo-600/10 text-indigo-400 border-indigo-500/20;
+        @apply bg-indigo-600/10 text-indigo-400 border-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.05)];
       }
     </style>
   `

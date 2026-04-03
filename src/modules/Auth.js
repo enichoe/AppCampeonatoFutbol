@@ -9,13 +9,13 @@ export const renderAuth = (container) => {
       <div class="flex-grow flex items-center justify-center p-6 relative z-10">
         <div class="w-full max-w-md animate-fade-in">
           <div class="flex flex-col items-center mb-10">
-            <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-2xl shadow-indigo-600/40 cursor-pointer" onclick="navigate('landing')">
+            <div class="w-16 h-16 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center mb-6 shadow-2xl shadow-indigo-600/40 cursor-pointer hover:scale-110 transition-transform" onclick="navigate('landing')">
               <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
               </svg>
             </div>
-            <h1 class="text-4xl font-black text-white italic uppercase tracking-tighter">SportSaaS</h1>
-            <p class="text-slate-500 text-[10px] font-bold uppercase tracking-[0.3em] mt-3">Plataforma de Gestión Deportiva</p>
+            <h1 class="text-3xl md:text-5xl font-[1000] text-white italic uppercase tracking-[-0.05em] leading-none text-center">Fútbol App</h1>
+            <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.4em] mt-4 opacity-60">Professional Management Console</p>
           </div>
 
           <div class="card !p-8 md:!p-10 border-white/5 bg-slate-900/50 backdrop-blur-3xl shadow-2xl">
@@ -46,16 +46,17 @@ export const renderAuth = (container) => {
         <h2 class="text-2xl font-black italic uppercase tracking-tighter text-white mb-2">Crear Cuenta</h2>
         <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-8">Empieza a gestionar tu liga hoy</p>
         
-        <form id="registerForm" class="space-y-5">
+        <form id="registerForm" class="space-y-6">
           <div>
-            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Correo Electrónico</label>
-            <input type="email" id="email" required class="form-input !bg-slate-800/50" placeholder="ejemplo@email.com">
+            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 italic">1. Correo Institucional</label>
+            <input type="email" id="email" required class="form-input" placeholder="ejemplo@email.com">
           </div>
           <div>
-            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Contraseña</label>
-            <input type="password" id="password" required class="form-input !bg-slate-800/50" placeholder="••••••••">
+            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 italic">2. Clave Maestra</label>
+            <input type="password" id="password" required class="form-input" placeholder="••••••••">
           </div>
-          <button type="submit" id="btnAuthSubmit" class="btn-primary w-full h-14 text-xs font-black uppercase tracking-[0.2em] mt-2 shadow-indigo-600/20">Registrarme Ahora</button>
+          <p class="text-[9px] text-slate-500 italic">Al registrarte, aceptas nuestros términos de servicio y políticas de privacidad.</p>
+          <button type="submit" id="btnAuthSubmit" class="btn-primary w-full h-14 !text-[11px]">Crear Mi Cuenta Ahora ➔</button>
         </form>
       `
       footer.innerHTML = `
@@ -69,19 +70,19 @@ export const renderAuth = (container) => {
         <h2 class="text-2xl font-black italic uppercase tracking-tighter text-white mb-2">Bienvenido</h2>
         <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-8">Ingresa a tu panel de administración</p>
         
-        <form id="loginForm" class="space-y-5">
+        <form id="loginForm" class="space-y-6">
           <div>
-            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Correo Electrónico</label>
-            <input type="email" name="email" id="email" required class="form-input !bg-slate-800/50" placeholder="ejemplo@email.com">
+            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 italic">Correo Electrónico</label>
+            <input type="email" name="email" id="email" required class="form-input" placeholder="ejemplo@email.com">
           </div>
           <div>
-            <div class="flex justify-between items-center mb-2">
-                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Contraseña</label>
-                <button type="button" class="text-[9px] font-bold text-indigo-400 hover:underline uppercase tracking-widest">¿La olvidaste?</button>
+            <div class="flex justify-between items-center mb-3">
+                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Clave de Acceso</label>
+                <button type="button" class="text-[9px] font-black text-indigo-400 hover:text-white uppercase tracking-widest transition-colors">¿Olvidaste la clave?</button>
             </div>
-            <input type="password" name="password" id="password" required class="form-input !bg-slate-800/50" placeholder="••••••••">
+            <input type="password" name="password" id="password" required class="form-input" placeholder="••••••••">
           </div>
-          <button type="submit" id="btnAuthSubmit" class="btn-primary w-full h-14 text-xs font-black uppercase tracking-[0.2em] mt-2 shadow-indigo-600/20">Entrar al Panel</button>
+          <button type="submit" id="btnAuthSubmit" class="btn-primary w-full h-14 !text-[11px]">Entrar al Sistema ➔</button>
         </form>
       `
       footer.innerHTML = `

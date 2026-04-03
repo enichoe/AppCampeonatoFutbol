@@ -80,22 +80,52 @@ h1, h2, h3, h4, .impact-text {
   50% { transform: translateY(-30px); }
 }
 
-/* Buttons and Components */
-.btn-premium {
-  @apply relative overflow-hidden transition-all duration-500 hover:scale-105 active:scale-95;
+/* Dashboard Design System — Dark Mode Ultra */
+.card {
+  @apply bg-slate-900/40 backdrop-blur-3xl border border-white/5 rounded-[2rem] p-6 md:p-8 transition-all duration-500 shadow-2xl;
 }
 
-.btn-premium::before {
-  content: '';
-  @apply absolute inset-0 bg-white/10 -translate-x-full hover:translate-x-0 transition-transform duration-500;
+.form-input {
+  @apply w-full bg-slate-950/60 border border-white/5 rounded-2xl p-4 text-xs font-bold text-white placeholder-slate-600 transition-all focus:border-neon/30 focus:outline-none focus:ring-4 focus:ring-neon/5 shadow-inner;
 }
 
-/* Mobile Nav Enhancements */
-.mobile-link {
-  @apply transition-all duration-500 hover:pl-4 hover:text-neon;
+.btn-primary {
+  @apply relative flex items-center justify-center bg-neon text-black px-8 py-5 rounded-2xl text-[10px] font-[1000] uppercase italic tracking-[0.2em] shadow-[0_20px_60px_rgba(0,255,136,0.15)] hover:bg-[#00E67A] hover:scale-105 active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
-/* Custom utility for masks */
-.mask-gradient {
-  mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+.btn-secondary {
+  @apply relative flex items-center justify-center bg-white/[0.03] text-slate-400 border border-white/5 px-8 py-5 rounded-2xl text-[10px] font-black uppercase italic tracking-[0.2em] hover:bg-white/[0.08] hover:text-white transition-all duration-300;
+}
+
+.badge {
+  @apply px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border;
+}
+
+.badge-success { @apply bg-emerald-500/10 text-emerald-400 border-emerald-500/20; }
+.badge-pending { @apply bg-amber-500/10 text-amber-400 border-amber-500/20; }
+.badge-danger  { @apply bg-red-500/10 text-red-400 border-red-500/20; }
+
+.live-indicator {
+  @apply relative flex h-2 w-2 mr-2;
+}
+.live-indicator span:first-child {
+  @apply animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75;
+}
+.live-indicator span:last-child {
+  @apply relative inline-flex rounded-full h-full w-full bg-red-500;
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Micro-animations */
+.fade-in { animation: fadeIn 0.5s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Tab specific styling */
+.tab-btn {
+  @apply px-6 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 border-b-2 border-transparent transition-all whitespace-nowrap italic;
+}
+.tab-btn.active {
+  @apply text-indigo-400 border-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.3)];
 }

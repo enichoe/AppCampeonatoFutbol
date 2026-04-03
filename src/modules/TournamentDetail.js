@@ -63,12 +63,12 @@ export const renderTournamentDetail = async (container, tournamentId) => {
           </div>
 
           <!-- TABS PRINCIPALES (Scrolleables) -->
-          <nav class="flex border-b border-white/5 overflow-x-auto no-scrollbar scroll-smooth -mx-5 px-5">
+          <nav class="flex border-b border-white/5 overflow-x-auto no-scrollbar scroll-smooth -mx-5 px-5 gap-4">
               <button class="tab-btn ${activeTab === 'resumen' ? 'active' : ''}" data-tab-id="resumen">Resumen</button>
               <button class="tab-btn ${activeTab === 'equipos' ? 'active' : ''}" data-tab-id="equipos">Equipos</button>
               <button class="tab-btn ${activeTab === 'partidos' ? 'active' : ''}" data-tab-id="partidos">Partidos</button>
-              <button class="tab-btn ${activeTab === 'hall_of_fame' ? 'active' : ''}" data-tab-id="hall_of_fame">Reconocimientos</button>
-              <button class="tab-btn ${activeTab === 'estadios' ? 'active' : ''}" data-tab-id="estadios">Estadios</button>
+              <button class="tab-btn ${activeTab === 'hall_of_fame' ? 'active' : ''}" data-tab-id="hall_of_fame">Cuadro Honor</button>
+              <button class="tab-btn ${activeTab === 'estadios' ? 'active' : ''}" data-tab-id="estadios">Sedes</button>
               <button class="tab-btn ${activeTab === 'config' ? 'active' : ''}" data-tab-id="config">Ajustes</button>
           </nav>
 
@@ -206,33 +206,33 @@ export const renderTournamentDetail = async (container, tournamentId) => {
                 return ''
             })()}
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                 <!-- Estado Card -->
-                <div class="card !p-8 bg-indigo-600/10 border-indigo-500/20 shadow-indigo-500/5 flex flex-col items-center justify-center text-center">
-                    <p class="text-[9px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Estado del Torneo</p>
+                <div class="card !p-6 md:!p-8 bg-indigo-600/5 backdrop-blur-xl border-indigo-500/20 shadow-indigo-500/5 flex flex-col items-center justify-center text-center group">
+                    <p class="text-[8px] md:text-[9px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Estado del Torneo</p>
                     <div class="flex items-center gap-3">
-                        <span class="live-indicator"><span></span><span></span></span>
-                        <h3 class="text-3xl font-black text-white uppercase italic tracking-tighter">${tournament.estado.replace('_', ' ')}</h3>
+                        <span class="live-indicator group-hover:scale-125 transition-transform"><span></span><span></span></span>
+                        <h3 class="text-2xl md:text-3xl font-[1000] text-white uppercase italic tracking-tighter">${tournament.estado.replace('_', ' ')}</h3>
                     </div>
                 </div>
-
+ 
                 <!-- Progreso Card -->
-                <div class="card !p-8 bg-slate-900/40">
-                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 text-center">Progreso de la Fase: ${faseActual.toUpperCase()}</p>
+                <div class="card !p-6 md:!p-8 bg-slate-900/40 backdrop-blur-xl border-white/5">
+                    <p class="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 text-center italic">Avance de Fase: ${faseActual.toUpperCase()}</p>
                     <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden mb-4 p-0.5 border border-white/5">
-                        <div class="bg-gradient-to-r from-indigo-600 to-indigo-400 h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(79,70,229,0.5)]" style="width: ${progreso}%"></div>
+                        <div class="bg-gradient-to-r from-indigo-600 via-indigo-400 to-neon h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(79,70,229,0.5)]" style="width: ${progreso}%"></div>
                     </div>
-                    <p class="text-[10px] text-center font-black text-slate-400 uppercase tracking-widest">${completadosFaseActual} de ${totalFaseActual} encuentros finalizados</p>
+                    <p class="text-[9px] text-center font-black text-slate-400 uppercase tracking-widest leading-none">${completadosFaseActual} / ${totalFaseActual} PARTIDOS OK</p>
                 </div>
-
+ 
                 <!-- Config Card -->
-                <div class="card !p-8 bg-slate-900/40">
-                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 text-center">Estructura del Torneo</p>
+                <div class="card !p-6 md:!p-8 bg-slate-900/40 backdrop-blur-xl border-white/5">
+                    <p class="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 text-center italic">Identidad de Competencia</p>
                     <div class="flex flex-col items-center">
-                        <span class="text-2xl font-black text-white italic uppercase tracking-tighter">${tournament.tipo.replace('_', ' ')}</span>
-                        <div class="flex items-center gap-2 mt-2">
-                           <span class="px-3 py-1 bg-white/5 rounded-lg text-[9px] font-black text-slate-300 uppercase">${teams.length} EQUIPOS</span>
-                           <span class="px-3 py-1 bg-white/5 rounded-lg text-[9px] font-black text-slate-300 uppercase">${tournament.configuracion.num_groups || tournament.configuracion.num_grupos || '?'} GRUPOS</span>
+                        <span class="text-xl md:text-2xl font-[1000] text-white italic uppercase tracking-tighter leading-none mb-3">${tournament.tipo.replace('_', ' ')}</span>
+                        <div class="flex items-center gap-2">
+                           <span class="px-3 py-1 bg-white/[0.03] border border-white/5 rounded-lg text-[8px] font-black text-indigo-400 uppercase tracking-widest">${teams.length} CLUBES</span>
+                           <span class="px-3 py-1 bg-white/[0.03] border border-white/5 rounded-lg text-[8px] font-black text-indigo-400 uppercase tracking-widest">${tournament.configuracion.num_groups || tournament.configuracion.num_grupos || '?'} GRUPOS</span>
                         </div>
                     </div>
                 </div>
@@ -293,12 +293,15 @@ export const renderTournamentDetail = async (container, tournamentId) => {
                 ` : ''}
             </div>
             
-            <div class="card h-fit sticky top-10 bg-slate-900 shadow-2xl border-indigo-500/10">
-                <div class="p-2 mb-6 border-b border-white/5 flex items-center justify-between">
-                   <h4 class="font-black italic text-xs uppercase tracking-[0.2em] text-slate-500">Master Control</h4>
+            <div class="card h-fit sticky top-10 bg-slate-950/40 backdrop-blur-3xl shadow-2xl border-indigo-500/20 overflow-hidden relative group">
+                <!-- Ambient Glow -->
+                <div class="absolute -bottom-20 -right-20 w-40 h-40 bg-indigo-600/10 blur-[60px] rounded-full group-hover:bg-indigo-600/20 transition-all"></div>
+                
+                <div class="p-2 mb-6 border-b border-white/5 flex items-center justify-between relative z-10">
+                   <h4 class="font-[1000] italic text-[10px] uppercase tracking-[0.3em] text-indigo-400/80">Master Control</h4>
                    <span class="live-indicator"><span></span><span></span></span>
                 </div>
-                <div class="space-y-4">
+                <div class="space-y-4 relative z-10">
                     ${tournament.estado === 'configuracion' ? `
                         <button id="btnStartFlow" class="btn-primary w-full shadow-indigo-600/30 uppercase text-[10px] font-black italic tracking-widest bg-indigo-600">INICIAR SORTEO DE EQUIPOS 🎲</button>
                     ` : ''}
