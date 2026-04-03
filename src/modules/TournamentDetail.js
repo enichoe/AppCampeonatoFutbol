@@ -462,8 +462,8 @@ export const renderTournamentDetail = async (container, tournamentId) => {
                         
                         try {
                             const fd = new FormData(e.target)
-                            const fotoFile = document.getElementById('input-final_foto_campeon').files[0]
-                            const trofeoFile = document.getElementById('input-final_foto_trofeo').files[0]
+                            const fotoFile = document.getElementById('final_foto_campeon_input').files[0]
+                            const trofeoFile = document.getElementById('final_foto_trofeo_input').files[0]
                             
                             let fotoUrl = null
                             let trofeoUrl = null
@@ -547,7 +547,7 @@ export const renderTournamentDetail = async (container, tournamentId) => {
         e.preventDefault()
         const btn = document.getElementById('btnSaveTeam')
         const name = document.getElementById('teamName').value
-        const file = document.getElementById('input-team_escudo').files[0]
+        const file = document.getElementById('team_escudo_input').files[0]
         
         btn.disabled = true; btn.innerText = 'PROCESANDO...'
         
@@ -662,7 +662,7 @@ export const renderTournamentDetail = async (container, tournamentId) => {
         e.preventDefault()
         const btn = document.getElementById('btnSavePlayer')
         const fd = new FormData(e.target)
-        const file = document.getElementById('input-player_foto').files[0]
+        const file = document.getElementById('player_foto_input').files[0]
         
         btn.disabled = true; btn.innerText = 'PROCESANDO...'
         
@@ -1516,7 +1516,7 @@ export const renderTournamentDetail = async (container, tournamentId) => {
         const btn = document.getElementById('btnSavePat')
         const name = document.getElementById('patName').value
         const web = document.getElementById('patWeb').value
-        const file = document.getElementById('input-pat_logo').files[0]
+        const file = document.getElementById('pat_logo_input').files[0]
 
         btn.disabled = true; btn.innerText = 'SUBIENDO...'
         
