@@ -18,7 +18,9 @@ export const navigate = async (view, params = null, pushState = true) => {
   state.params = params
   
   appContainer.innerHTML = ''
-  
+  // Aseguramos que el contenedor sea visible tras posible ocultación preventiva
+  appContainer.style.visibility = 'visible'
+  appContainer.style.opacity = '1'
   // Manejo de URL limpia para torneos públicos
   if (pushState) {
     if (view === 'public_torneo') {
@@ -109,14 +111,23 @@ const init = async () => {
 
     if (loader) loader.classList.add('hidden')
     
-    // Router basado en Pathname
+    // Router basado en Pathname (SEO Friendly)
     if (path.startsWith('/torneo/')) {
         const slug = path.split('/torneo/')[1]
         navigate('public_torneo', { slug })
+    } else if (path === '/torneos') {
+        navigate('torneos')
+    } else if (path === '/auth' || path === '/login') {
+        navigate('auth')
     } else if (state.user) {
         navigate('dashboard')
     } else {
         navigate('landing')
+    }
+
+    if (loader) {
+        loader.classList.add('opacity-0')
+        setTimeout(() => loader.classList.add('hidden'), 300)
     }
   } catch (error) {
     console.error('Error al inicializar la app:', error)

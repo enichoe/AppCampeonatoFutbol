@@ -268,6 +268,7 @@ function renderCardPartido(m) {
       </div>
     </div>
   `
+}
 
 export const renderMatches = async (container) => {
   container.innerHTML = `
