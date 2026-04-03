@@ -1,5 +1,6 @@
 import { supabase } from '../services/supabase.js'
 import { parsearFechaLocal, formatearFecha, formatearFechaHora } from '../utils/fechas.js'
+import { renderEscudo, renderFotoJugador } from '../utils/storage.js'
 
 export const renderPublicTournament = async (container, params) => {
     // Cargar datos iniciales del torneo y recursos relacionados
@@ -34,6 +35,12 @@ export const renderPublicTournament = async (container, params) => {
         partidos = p || []
         equipos = eq || []
         jugadores = j || []
+
+        // DIAGNÓSTICO: Inspección de URLs
+        console.group('FIFA App - Image Diagnostics')
+        console.table(equipos.map(e => ({ nombre: e.nombre, escudo_url: e.escudo_url, ok: !!e.escudo_url?.startsWith('http') })))
+        console.table(jugadores.slice(0,5).map(j => ({ nombre: j.nombre, foto_url: j.foto_url, ok: !!j.foto_url?.startsWith('http') })))
+        console.groupEnd()
 
         const partidoIds = partidos.map(p => p.id)
         if (partidoIds.length > 0) {
@@ -81,7 +88,7 @@ export const renderPublicTournament = async (container, params) => {
             <div class="m-fifa-main">
                 <div class="m-fifa-team local">
                     <div class="m-fifa-shield-wrap">
-                        <img src="${m.h?.escudo_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(m.h?.nombre||'?')}" loading="lazy">
+                        ${renderEscudo(m.h?.escudo_url, m.h?.nombre, 50)}
                     </div>
                     <span>${m.h?.nombre || 'TBD'}</span>
                 </div>
@@ -95,7 +102,7 @@ export const renderPublicTournament = async (container, params) => {
 
                 <div class="m-fifa-team visit">
                     <div class="m-fifa-shield-wrap">
-                        <img src="${m.a?.escudo_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(m.a?.nombre||'?')}" loading="lazy">
+                        ${renderEscudo(m.a?.escudo_url, m.a?.nombre, 50)}
                     </div>
                     <span>${m.a?.nombre || 'TBD'}</span>
                 </div>
@@ -610,7 +617,9 @@ export const renderPublicTournament = async (container, params) => {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     ${equipos.map(e => `
                         <div class="ea-club-card animate-fade">
-                            <img src="${e.escudo_url || 'https://ui-avatars.com/api/?name='+e.nombre}" class="ea-club-shield">
+                            <div class="flex justify-center mb-4">
+                                ${renderEscudo(e.escudo_url, e.nombre, 80)}
+                            </div>
                             <h3 class="ea-club-name">${e.nombre}</h3>
                             <button class="ea-btn-roster btn-club-details" data-team-id="${e.id}">Ver Plantilla</button>
                         </div>
@@ -662,7 +671,7 @@ export const renderPublicTournament = async (container, params) => {
         const renderRow = (r, i) => `
             <div class="ea-standings-row pos-${i+1}">
                 <span class="ea-st-pos">${(i+1)}</span>
-                <img src="${r.escudo_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(r.equipo_nombre || '?')}" class="ea-st-shield">
+                ${renderEscudo(r.escudo_url, r.equipo_nombre, 32)}
                 <span class="ea-st-name">${r.equipo_nombre || 'Equipo'}</span>
                 <span class="ea-st-val">${r.pj ?? 0}</span>
                 <span class="ea-st-val">${r.dg ?? 0}</span>
@@ -831,7 +840,9 @@ export const renderPublicTournament = async (container, params) => {
 
                 modalContent.innerHTML = `
                     <div class="text-center mb-8">
-                        <img src="${team.escudo_url || 'https://ui-avatars.com/api/?name=' + team.nombre}" class="w-32 h-32 mx-auto mb-4 object-contain filter drop-shadow-2xl">
+                        <div class="flex justify-center mb-4">
+                            ${renderEscudo(team.escudo_url, team.nombre, 96)}
+                        </div>
                         <h2 class="text-3xl font-black uppercase italic tracking-tighter text-white">${team.nombre}</h2>
                     </div>
                     <div id="p-l-modal" class="space-y-3 max-h-[50vh] overflow-y-auto custom-scroll">
@@ -853,13 +864,14 @@ export const renderPublicTournament = async (container, params) => {
                     listEl.innerHTML = players.map(p => `
                         <div class="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-2xl">
                             <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center font-black text-xs text-slate-500">
-                                    ${p.dorsal || '--'}
-                                </div>
+                                ${renderFotoJugador(p.foto_url, p.nombre, 44)}
                                 <div class="text-left">
                                     <p class="font-black uppercase text-xs text-white">${p.nombre}</p>
                                     <p class="text-[8px] text-cyan font-black uppercase">${p.posicion || 'Jugador'}</p>
                                 </div>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center font-black text-xs text-slate-500">
+                                # ${p.dorsal || '--'}
                             </div>
                         </div>
                     `).join('')

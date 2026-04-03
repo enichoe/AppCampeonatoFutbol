@@ -1,82 +1,132 @@
 import { supabase } from '../services/supabase.js'
 
-/**
- * Sube una imagen a un bucket de Supabase Storage y devuelve la URL pública.
- * @param {File} file 
- * @param {string} bucket 
- * @param {string} folder 
- * @returns {Promise<string>}
- */
-export async function uploadImage(file, bucket, folder) {
-    if (!file) return null
-
-    const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`
-    const filePath = `${folder}/${fileName}`
-
-    const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(filePath, file)
-
-    if (error) throw error
-
-    const { data: { publicUrl } } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(filePath)
-
-    return publicUrl
-}
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 
 /**
- * Genera el HTML para un selector de imagen con previsualización.
- * @param {string} name - Nombre único para el input/ID.
- * @param {string} label - Etiqueta a mostrar.
- * @param {boolean} required - Si es obligatorio.
- * @param {'square' | 'circle'} shape - Forma de la previsualización.
- * @returns {string}
+ * Convierte cualquier valor de *_url a una URL pública funcional,
+ * sin importar cómo se guardó en la DB (path, firmado, full URL)
  */
-export function createImageDropzone(name, label, required = false, shape = 'square') {
-    const isCircle = shape === 'circle'
-    return `
-        <div class="space-y-3 dropzone-container" data-name="${name}">
-            <label class="text-[10px] font-black italic uppercase tracking-widest text-slate-500">${label} ${required ? '<span class="text-red-500">*</span>' : ''}</label>
-            <div id="dropzone-${name}" class="relative group cursor-pointer">
-                <input type="file" id="input-${name}" class="hidden" accept="image/*" ${required ? 'required' : ''}>
-                <div id="preview-${name}" class="w-full aspect-video ${isCircle ? 'aspect-square rounded-full mx-auto max-w-[150px]' : 'rounded-2xl'} bg-slate-900 border-2 border-dashed border-slate-800 group-hover:border-indigo-500/50 flex flex-col items-center justify-center transition-all overflow-hidden relative">
-                    <div class="flex flex-col items-center text-center p-4 dropzone-placeholder">
-                        <svg class="w-6 h-6 text-slate-600 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"></path></svg>
-                        <span class="text-[9px] font-black italic text-slate-600 uppercase">Seleccionar Imagen</span>
-                    </div>
-                    <img id="img-preview-${name}" class="hidden absolute inset-0 w-full h-full object-cover">
-                </div>
-            </div>
-        </div>
-    `
-}
+export function getPublicUrl(valor, bucket) {
+  if (!valor) return null
 
-/**
- * Inicializa la lógica de previsualización para un dropzone (debe llamarse después de inyectar el HTML).
- * @param {string} name 
- * @param {Function} onChange - Callback opcional.
- */
-export function setupDropzone(name, onChange) {
-    const input = document.getElementById(`input-${name}`)
-    const dropzone = document.getElementById(`dropzone-${name}`)
-    const preview = document.getElementById(`img-preview-${name}`)
-    const placeholder = dropzone.querySelector('.dropzone-placeholder')
+  // Caso 1: ya es URL completa pública de Supabase Storage
+  if (valor.startsWith('https://') && valor.includes('/storage/v1/object/public/')) {
+    return valor
+  }
 
-    dropzone.onclick = () => input.click()
-
-    input.onchange = (e) => {
-        const file = e.target.files[0]
-        if (file) {
-            const reader = new FileReader()
-            reader.onload = (re) => {
-                preview.src = re.target.result
-                preview.classList.remove('hidden')
-                if (placeholder) placeholder.classList.add('hidden')
-                if (onChange) onChange(file)
-            }
-            reader.readAsDataURL(file)
-        }
+  // Caso 2: URL completa pero de objeto firmado (sign) → reconstruir como pública
+  if (valor.startsWith('https://') && valor.includes('/storage/v1/object/sign/')) {
+    const partes = valor.split('/object/sign/' + bucket + '/')
+    if (partes[1]) {
+      const path = partes[1].split('?')[0] // quitar query params del token
+      return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`
     }
+    return null
+  }
+
+  // Caso 3: URL completa pero bucket incorrecto o genérica de Supabase
+  if (valor.startsWith('https://') && valor.includes('/storage/v1/')) {
+    return valor
+  }
+
+  // Caso 4: path relativo con bucket incluido "equipos/archivo.png"
+  if (valor.startsWith(bucket + '/')) {
+    return `${SUPABASE_URL}/storage/v1/object/public/${valor}`
+  }
+
+  // Caso 5: path relativo sin bucket "archivo.png" o "carpeta/archivo.png"
+  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${valor}`
+}
+
+/**
+ * Helpers específicos por tipo de recurso
+ */
+export const getEscudoUrl  = (url) => getPublicUrl(url, 'equipos')
+export const getFotoUrl    = (url) => getPublicUrl(url, 'jugadores')
+export const getLogoUrl    = (url) => getPublicUrl(url, 'torneos')
+
+/**
+ * Genera el HTML de un escudo con fallback a iniciales si la carga falla
+ */
+export function renderEscudo(escudoUrl, nombreEquipo, size = 40) {
+  const url = getEscudoUrl(escudoUrl)
+  const iniciales = nombreEquipo
+    ? nombreEquipo.substring(0, 2).toUpperCase()
+    : '?'
+
+  if (url) {
+    return `
+      <div class="relative overflow-hidden flex items-center justify-center bg-slate-900/50 rounded-full border border-white/5" style="width:${size}px; height:${size}px;">
+        <img
+          src="${url}"
+          alt="Escudo ${nombreEquipo}"
+          width="${size}"
+          height="${size}"
+          loading="lazy"
+          class="w-full h-full object-contain p-1"
+          onerror="
+            this.onerror=null;
+            this.style.display='none';
+            this.nextElementSibling.style.display='flex';
+          "
+        />
+        <div style="display:none; width:100%; height:100%;
+                    align-items:center; justify-content:center;
+                    font-size:${Math.floor(size * 0.35)}px;
+                    font-weight:900; color:var(--cyan, #00d4ff); font-style: italic;">
+          ${iniciales}
+        </div>
+      </div>
+    `
+  }
+
+  return `
+    <div class="flex items-center justify-center bg-slate-900/50 rounded-full border border-white/5" 
+         style="width:${size}px; height:${size}px; font-size:${Math.floor(size * 0.35)}px; font-weight:900; color:var(--cyan, #00d4ff); font-style: italic;">
+      ${iniciales}
+    </div>
+  `
+}
+
+/**
+ * Genera el HTML de la foto de un jugador con fallback a su inicial
+ */
+export function renderFotoJugador(fotoUrl, nombreJugador, size = 48) {
+  const url = getFotoUrl(fotoUrl)
+  const inicial = nombreJugador
+    ? nombreJugador.charAt(0).toUpperCase()
+    : '?'
+
+  if (url) {
+    return `
+      <div class="relative overflow-hidden flex items-center justify-center bg-slate-900/50 rounded-full border border-white/5" style="width:${size}px; height:${size}px;">
+        <img
+          src="${url}"
+          alt="${nombreJugador}"
+          width="${size}"
+          height="${size}"
+          loading="lazy"
+          class="w-full h-full object-cover"
+          onerror="
+            this.onerror=null;
+            this.style.display='none';
+            this.nextElementSibling.style.display='flex';
+          "
+        />
+        <div style="display:none; width:100%; height:100%;
+                    align-items:center; justify-content:center;
+                    font-size:${Math.floor(size * 0.4)}px;
+                    font-weight:900; color:var(--cyan, #00d4ff);">
+          ${inicial}
+        </div>
+      </div>
+    `
+  }
+
+  return `
+    <div class="flex items-center justify-center bg-slate-900/50 rounded-full border border-white/5" 
+         style="width:${size}px; height:${size}px; font-size:${Math.floor(size * 0.4)}px; font-weight:900; color:var(--cyan, #00d4ff);">
+      ${inicial}
+    </div>
+  `
 }

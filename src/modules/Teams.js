@@ -1,4 +1,5 @@
 import { supabase } from '../services/supabase.js'
+import { renderEscudo, renderFotoJugador } from '../utils/storage.js'
 
 export const renderTeams = async (container) => {
   container.innerHTML = `
@@ -50,12 +51,19 @@ export const renderTeams = async (container) => {
                         <option value="">Selecciona un torneo...</option>
                     </select>
                 </div>
-                <div>
-                   <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Logo / Escudo (URL)</label>
-                   <input type="url" name="escudo_url" placeholder="https://ejemplo.com/logo.png" class="form-input">
+                <div class="space-y-4">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Logo / Escudo del Club</label>
+                    <div id="dropzoneEscudo" class="w-full h-32 bg-slate-900/50 border-2 border-dashed border-white/5 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-indigo-500/30 transition-all group">
+                        <div id="previewEscudo" class="w-16 h-16 rounded-lg overflow-hidden hidden mb-2"></div>
+                        <div class="flex flex-col items-center text-slate-500 group-hover:text-slate-300">
+                            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <span class="text-[9px] font-black uppercase tracking-widest">Subir Imagen (JPG/PNG)</span>
+                        </div>
+                        <input type="file" id="inputEscudo" name="escudo_file" accept="image/*" class="hidden">
+                    </div>
                 </div>
                 <div class="flex flex-col md:flex-row gap-4 pt-8 border-t border-white/5">
-                    <button type="submit" class="btn-primary flex-1 shadow-indigo-600/20 uppercase text-xs font-black tracking-widest">Confirmar Inscripción ➔</button>
+                    <button type="submit" id="btnSubmitTeam" class="btn-primary flex-1 shadow-indigo-600/20 uppercase text-xs font-black tracking-widest">Confirmar Inscripción ➔</button>
                     <button type="button" class="btn-secondary px-8 border-transparent" id="cancelModal">Cancelar</button>
                 </div>
             </form>
@@ -102,6 +110,14 @@ export const renderTeams = async (container) => {
     
     if (error) return console.error(error)
 
+    // DIAGNÓSTICO: Inspección de URLs de escudos
+    console.table(teams.map(e => ({
+      nombre:     e.nombre,
+      escudo_url: e.escudo_url,
+      tipo_url:   e.escudo_url?.startsWith('http') ? 'URL completa' :
+                  e.escudo_url ? 'path relativo' : 'NULL'
+    })))
+
     if (teams.length === 0) {
         listContainer.innerHTML = '<p class="col-span-full text-center text-slate-500 py-20">No tienes equipos registrados.</p>'
     } else {
@@ -109,7 +125,7 @@ export const renderTeams = async (container) => {
             <div class="card p-6 flex flex-col items-center glass-hover group text-center relative overflow-hidden">
                 <div class="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div class="w-24 h-24 bg-slate-900 rounded-[2.5rem] flex items-center justify-center mb-5 border border-white/5 overflow-hidden shadow-2xl relative z-10">
-                    ${t.escudo_url ? `<img src="${t.escudo_url}" class="w-16 h-16 object-contain transition-transform group-hover:scale-110" loading="lazy">` : `<span class="text-3xl font-black text-indigo-500">${t.nombre.charAt(0).toUpperCase()}</span>`}
+                    ${renderEscudo(t.escudo_url, t.nombre, 64)}
                 </div>
                 <h4 class="font-black italic text-xl text-white uppercase tracking-tighter mb-2 relative z-10 leading-tight">${t.nombre}</h4>
                 <p class="text-[9px] text-indigo-400 font-bold uppercase tracking-[0.2em] mb-6 relative z-10 px-3 py-1 bg-indigo-500/5 rounded-full border border-indigo-500/10 truncate max-w-full">${t.torneos?.nombre || 'Categoría Libre'}</p>
@@ -124,24 +140,69 @@ export const renderTeams = async (container) => {
   document.getElementById('cancelModal').onclick = () => modal.classList.toggle('hidden')
   document.getElementById('closeModal').onclick = () => modal.classList.toggle('hidden')
 
+  const inputEscudo = document.getElementById('inputEscudo')
+  const dropzoneEscudo = document.getElementById('dropzoneEscudo')
+  const previewEscudo = document.getElementById('previewEscudo')
+
+  if (dropzoneEscudo) {
+      dropzoneEscudo.onclick = () => inputEscudo.click()
+      inputEscudo.onchange = (e) => {
+          const file = e.target.files[0]
+          if (file) {
+              const reader = new FileReader()
+              reader.onload = (ev) => {
+                  previewEscudo.innerHTML = `<img src="${ev.target.result}" class="w-full h-full object-cover">`
+                  previewEscudo.classList.remove('hidden')
+                  dropzoneEscudo.querySelector('div:not(#previewEscudo)').classList.add('hidden')
+              }
+              reader.readAsDataURL(file)
+          }
+      }
+  }
+
   document.getElementById('teamForm').onsubmit = async (e) => {
     e.preventDefault()
-    const { data: { user } } = await supabase.auth.getUser()
-    const formData = new FormData(e.target)
-    
-    const { error } = await supabase.from('equipos').insert([{
-        user_id: user.id,
-        nombre: formData.get('nombre'),
-        torneo_id: formData.get('torneo_id'),
-        escudo_url: formData.get('escudo_url')
-    }])
+    const btn = document.getElementById('btnSubmitTeam')
+    btn.disabled = true
+    btn.innerText = 'PROCESANDO...'
 
-    if(!error) {
+    try {
+        const { data: { user } } = await supabase.auth.getUser()
+        const formData = new FormData(e.target)
+        let escudo_url = null
+
+        // Subir archivo si existe
+        const file = inputEscudo.files[0]
+        if (file) {
+            const ext = file.name.split('.').pop().toLowerCase()
+            const path = `${user.id}/${Date.now()}-${file.name.replace(/[^a-z0-9.]/gi, '_')}`
+            
+            const { error: upError } = await supabase.storage.from('equipos').upload(path, file)
+            if (upError) throw upError
+            
+            escudo_url = supabase.storage.from('equipos').getPublicUrl(path).data.publicUrl
+        }
+
+        const { error } = await supabase.from('equipos').insert([{
+            user_id: user.id,
+            nombre: formData.get('nombre'),
+            torneo_id: formData.get('torneo_id'),
+            escudo_url: escudo_url
+        }])
+
+        if (error) throw error
+        
         modal.classList.add('hidden')
         loadData()
         e.target.reset()
-    } else {
-        alert(error.message)
+        previewEscudo.classList.add('hidden')
+        dropzoneEscudo.querySelector('div:not(#previewEscudo)').classList.remove('hidden')
+
+    } catch (err) {
+        alert("Error: " + err.message)
+    } finally {
+        btn.disabled = false
+        btn.innerText = 'Confirmar Inscripción ➔'
     }
   }
 
@@ -166,13 +227,22 @@ export const renderTeams = async (container) => {
             const source = user ? 'jugadores' : 'jugadores_publicos'
             const { data: players, error } = await supabase.from(source).select('*').eq('equipo_id', teamId).is('deleted_at', null)
             if (error) throw error
+
+            // DIAGNÓSTICO: Inspección de URLs de fotos
+            console.table(players.map(j => ({
+              nombre:   j.nombre,
+              foto_url: j.foto_url,
+              tipo_url: j.foto_url?.startsWith('http') ? 'URL completa' :
+                        j.foto_url ? 'path relativo' : 'NULL'
+            })))
+
             if (!players || players.length === 0) return openRosterModal('<p class="text-center py-6">No hay jugadores registrados.</p>')
             openRosterModal(players.map(p => `
-                <div class="flex items-center gap-3 p-2 border-b border-slate-800/20">
-                    <img src="${p.foto_url || ('https://ui-avatars.com/api/?name='+encodeURIComponent(p.nombre))}" class="w-10 h-10 rounded-md object-cover" loading="lazy">
+                <div class="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors rounded-2xl">
+                    ${renderFotoJugador(p.foto_url, p.nombre, 44)}
                     <div>
-                        <div class="font-black text-white">${p.nombre}</div>
-                        <div class="text-[11px] text-slate-400">#${p.dorsal || '-'} • ${p.posicion || '-'}</div>
+                        <div class="font-black text-white uppercase italic tracking-tighter">${p.nombre}</div>
+                        <div class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">#${p.dorsal || '--'} • ${p.posicion || 'JUGADOR'}</div>
                     </div>
                 </div>
             `).join(''))

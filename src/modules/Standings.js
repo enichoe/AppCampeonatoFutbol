@@ -1,4 +1,5 @@
 import { supabase } from '../services/supabase.js'
+import { renderEscudo } from '../utils/storage.js'
 
 export const renderStandings = async (container, torneoId) => {
   container.innerHTML = `
@@ -84,9 +85,7 @@ export const renderStandings = async (container, torneoId) => {
                                 </td>
                                 <td class="py-5 px-4">
                                     <div class="flex items-center gap-4">
-                                        <div class="w-8 h-8 rounded-lg overflow-hidden bg-slate-950 p-1.5 border border-white/5 flex items-center justify-center">
-                                            <img src="${row.equipo_escudo || ('https://ui-avatars.com/api/?name='+encodeURIComponent(row.equipo_nombre))}" class="w-full h-full object-contain" loading="lazy">
-                                        </div>
+                                        ${renderEscudo(row.equipo_escudo, row.equipo_nombre, 32)}
                                         <span class="font-black text-white italic uppercase tracking-tighter text-sm">${row.equipo_nombre}</span>
                                     </div>
                                 </td>
