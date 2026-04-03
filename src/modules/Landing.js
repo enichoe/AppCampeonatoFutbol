@@ -309,10 +309,16 @@ function renderRestOfSections() {
                 <button onclick="window.navigate('auth')" class="group relative bg-indigo-600 text-white px-12 py-8 text-xl font-[1000] italic uppercase tracking-widest rounded-3xl shadow-[0_0_50px_rgba(79,70,229,0.4)] hover:scale-105 transition-all w-full md:w-auto">
                     Crear mi liga ahora
                 </button>
-                <a href="#" class="flex items-center gap-3 px-10 py-8 text-slate-300 font-black italic uppercase tracking-widest border border-white/10 rounded-3xl hover:bg-white/5 transition-all w-full md:w-auto justify-center">
-                    <svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.316 1.592 5.43 0 9.856-4.426 9.858-9.855 0-2.63-1.024-5.103-2.884-6.964-1.86-1.86-4.334-2.884-6.964-2.884-5.43 0-9.858 4.426-9.858 9.855 0-2.113.582 3.535 1.577 5.141l-.957 3.498 3.587-.941z"/></svg>
-                    Hablar con un experto
-                </a>
+                <a href="https://wa.me/51972498691?text=Hola%20quiero%20crear%20mi%20campeonato%20de%20f%C3%BAtbol%20%E2%9A%BD%F0%9F%8F%86%20y%20necesito%20m%C3%A1s%20informaci%C3%B3n%20%F0%9F%93%8A"
+   target="_blank"
+   class="flex items-center gap-3 px-10 py-8 text-slate-300 font-black italic uppercase tracking-widest border border-white/10 rounded-3xl hover:bg-green-500/10 hover:text-white hover:scale-105 transition-all duration-300 w-full md:w-auto justify-center">
+    
+    <svg class="w-6 h-6 text-green-500 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.316 1.592 5.43 0 9.856-4.426 9.858-9.855 0-2.63-1.024-5.103-2.884-6.964-1.86-1.86-4.334-2.884-6.964-2.884-5.43 0-9.858 4.426-9.858 9.855 0-2.113.582 3.535 1.577 5.141l-.957 3.498 3.587-.941z"/>
+    </svg>
+
+    Hablar con un experto 💬⚽
+</a>
               </div>
           </div>
       </section>
@@ -347,7 +353,13 @@ function renderRestOfSections() {
                       <h4 class="text-white font-black italic uppercase tracking-widest text-xs mb-8">Soporte</h4>
                       <ul class="space-y-4">
                           <li><a href="#" class="text-slate-500 hover:text-indigo-400 font-bold uppercase text-[11px] tracking-widest transition-colors">Centro de ayuda</a></li>
-                          <li><a href="#" class="text-slate-500 hover:text-indigo-400 font-bold uppercase text-[11px] tracking-widest transition-colors">WhatsApp Directo</a></li>
+                          <li>
+  <a href="https://wa.me/51972498691?text=Hola%20quiero%20crear%20mi%20campeonato%20de%20f%C3%BAtbol%20%E2%9A%BD%F0%9F%8F%86"
+     target="_blank"
+     class="text-slate-500 hover:text-indigo-400 font-bold uppercase text-[11px] tracking-widest transition-colors">
+     WhatsApp Directo 💬
+  </a>
+</li>
                       </ul>
                   </div>
               </div>
