@@ -1,6 +1,7 @@
 import { supabase } from '../services/supabase.js'
 import { parsearFechaLocal, formatearFecha, formatearFechaHora } from '../utils/fechas.js'
 import { renderEscudo, renderFotoJugador } from '../utils/storage.js'
+import { state } from '../main.js'
 
 export const renderPublicTournament = async (container, params) => {
     // Cargar datos iniciales del torneo y recursos relacionados
