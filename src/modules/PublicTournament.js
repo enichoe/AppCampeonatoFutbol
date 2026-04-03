@@ -706,7 +706,7 @@ export const renderPublicTournament = async (container, params) => {
         const renderRow = (r, i) => `
             <div class="ea-standings-row pos-${i+1}">
                 <span class="ea-st-pos">${(i+1)}</span>
-                ${renderEscudo(r.escudo_url, r.equipo_nombre, 32)}
+                ${renderEscudo(r.equipo_escudo || r.escudo_url, r.equipo_nombre, 32)}
                 <span class="ea-st-name">${r.equipo_nombre || 'Equipo'}</span>
                 <span class="ea-st-val">${r.pj ?? 0}</span>
                 <span class="ea-st-val">${r.dg ?? 0}</span>
