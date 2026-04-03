@@ -68,7 +68,7 @@ export const renderTournamentDetail = async (container, tournamentId) => {
               <button class="tab-btn ${activeTab === 'equipos' ? 'active' : ''}" data-tab-id="equipos">Equipos</button>
               <button class="tab-btn ${activeTab === 'partidos' ? 'active' : ''}" data-tab-id="partidos">Partidos</button>
               <button class="tab-btn ${activeTab === 'hall_of_fame' ? 'active' : ''}" data-tab-id="hall_of_fame">Reconocimientos</button>
-              <button class="tab-btn ${activeTab === 'infra' ? 'active' : ''}" data-tab-id="infra">Sedes</button>
+              <button class="tab-btn ${activeTab === 'estadios' ? 'active' : ''}" data-tab-id="estadios">Estadios</button>
               <button class="tab-btn ${activeTab === 'config' ? 'active' : ''}" data-tab-id="config">Ajustes</button>
           </nav>
 
@@ -152,8 +152,8 @@ export const renderTournamentDetail = async (container, tournamentId) => {
         case 'hall_of_fame':
             renderHallOfFame(tabContainer)
             break
-        case 'infra':
-            renderInfra(tabContainer)
+        case 'estadios':
+            renderEstadios(tabContainer)
             break
         case 'config':
             renderConfig(tabContainer)
@@ -985,10 +985,10 @@ export const renderTournamentDetail = async (container, tournamentId) => {
                 <div class="pt-4 border-t border-white/5 flex flex-wrap gap-x-6 gap-y-2">
                     <div class="flex items-center gap-2 text-[9px] font-bold text-slate-500">
                         <span>📍</span>
-                        <span class="${m.campo?.sede?.nombre ? 'text-slate-300' : ''}">${m.campo?.sede?.nombre ? `${m.campo.sede.nombre} — ${m.campo.nombre}` : 'Sin lugar'}</span>
+                        <span class="${m.campo?.sede?.nombre ? 'text-slate-300' : ''}">${m.campo?.sede?.nombre || 'Sin estadio asignado'}</span>
                     </div>
                     <div class="flex items-center gap-2 text-[9px] font-bold text-slate-500">
-                        <span>👨⚖️</span>
+                        <span>👨‍⚖️</span>
                         <span class="${m.arbitro?.nombre ? 'text-slate-300' : ''}">${m.arbitro?.nombre || 'Sin árbitro'}</span>
                     </div>
                 </div>
@@ -1188,9 +1188,9 @@ export const renderTournamentDetail = async (container, tournamentId) => {
 
 
   const renderScheduleModal = async (matchId) => {
-    const { data: m } = await supabase.from('partidos').select('*, h:equipo_local_id(nombre), a:equipo_visitante_id(nombre)').eq('id', matchId).single()
-    const { data: sedes } = await supabase.from('sedes').select('*')
-    const { data: arbitros } = await supabase.from('arbitros').select('*')
+    const { data: m } = await supabase.from('partidos').select('*, campo:campos(id, sede_id), h:equipo_local_id(nombre), a:equipo_visitante_id(nombre)').eq('id', matchId).single()
+    const { data: sedes } = await supabase.from('sedes').select('*').eq('torneo_id', tournamentId).order('nombre')
+    const { data: arbitros } = await supabase.from('arbitros').select('*').eq('torneo_id', tournamentId).order('nombre')
 
     const modal = document.createElement('div')
     modal.className = 'fixed inset-0 z-[200] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-md'
@@ -1216,20 +1216,14 @@ export const renderTournamentDetail = async (container, tournamentId) => {
                     })() : ''}" required>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 gap-6">
                     <div>
-                        <label class="text-[10px] font-black italic uppercase tracking-widest text-slate-500 mb-2 block">Sede</label>
-                        <select id="sedeSelect" class="form-input text-xs">
-                            <option value="">Seleccionar Sede</option>
-                            ${sedes.map(s => `<option value="${s.id}">${s.nombre}</option>`).join('')}
+                        <label class="text-[10px] font-black italic uppercase tracking-widest text-slate-500 mb-2 block">Estadio</label>
+                        <select id="sedeSelect" class="form-input text-xs" name="sede_id">
+                            <option value="">Seleccionar Estadio</option>
+                            ${sedes.map(s => `<option value="${s.id}" ${m.campo?.sede_id === s.id ? 'selected' : ''}>${s.nombre} ${s.direccion ? '— ' + s.direccion : ''}</option>`).join('')}
                         </select>
-                        <button type="button" id="btnGoInfraSede" class="text-[8px] font-black text-indigo-400 uppercase mt-2 hover:underline">Crear Sede ➔</button>
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black italic uppercase tracking-widest text-slate-500 mb-2 block">Campo</label>
-                        <select name="campo_id" id="campoSelect" class="form-input text-xs" disabled>
-                            <option value="">Primero elige sede</option>
-                        </select>
+                        <button type="button" id="btnGoEstadios" class="text-[8px] font-black text-indigo-400 uppercase mt-2 hover:underline">Gestionar Estadios ➔</button>
                     </div>
                 </div>
 
@@ -1237,9 +1231,9 @@ export const renderTournamentDetail = async (container, tournamentId) => {
                     <label class="text-[10px] font-black italic uppercase tracking-widest text-slate-500 mb-2 block">Árbitro</label>
                     <select name="arbitro_id" class="form-input text-xs">
                         <option value="">Sin árbitro asignado</option>
-                        ${arbitros.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('')}
+                        ${arbitros.map(a => `<option value="${a.id}" ${m.arbitro_id === a.id ? 'selected' : ''}>${a.nombre}</option>`).join('')}
                     </select>
-                    <button type="button" id="btnGoInfraRef" class="text-[8px] font-black text-indigo-400 uppercase mt-2 hover:underline">Agregar Árbitro ➔</button>
+                    <button type="button" id="btnGoRefs" class="text-[8px] font-black text-indigo-400 uppercase mt-2 hover:underline">Agregar Árbitro ➔</button>
                 </div>
 
                 <div>
@@ -1256,60 +1250,46 @@ export const renderTournamentDetail = async (container, tournamentId) => {
     `
     document.body.appendChild(modal)
 
-    const sSelect = modal.querySelector('#sedeSelect')
-    const cSelect = modal.querySelector('#campoSelect')
-
-    modal.querySelector('#btnGoInfraSede').onclick = () => { activeTab = 'infra'; renderFrame(); modal.remove(); }
-    modal.querySelector('#btnGoInfraRef').onclick = () => { activeTab = 'infra'; renderFrame(); modal.remove(); }
-
-    const updateCampos = async (sedeId) => {
-        if (!sedeId) {
-            cSelect.innerHTML = '<option value="">Primero elige sede</option>'
-            cSelect.disabled = true
-            return
-        }
-        const { data: campos } = await supabase.from('campos').select('*').eq('sede_id', sedeId)
-        cSelect.innerHTML = campos.length ? campos.map(c => `<option value="${c.id}" ${m.campo_id === c.id ? 'selected' : ''}>${c.nombre}</option>`).join('') : '<option value="">No hay campos en esta sede</option>'
-        cSelect.disabled = false
-    }
-
-    sSelect.onchange = (e) => updateCampos(e.target.value)
-
-    // Si ya tiene campo asignado, cargar sede del campo y sus campos
-    if (m.campo_id) {
-        const { data: currentCampo } = await supabase.from('campos').select('sede_id').eq('id', m.campo_id).single()
-        if (currentCampo) {
-            sSelect.value = currentCampo.sede_id
-            await updateCampos(currentCampo.sede_id)
-        }
-    }
+    modal.querySelector('#btnGoEstadios').onclick = () => { activeTab = 'estadios'; renderFrame(); modal.remove(); }
+    modal.querySelector('#btnGoRefs').onclick = () => { activeTab = 'estadios'; renderFrame(); modal.remove(); }
 
     modal.querySelector('#scheduleForm').onsubmit = async (e) => {
         e.preventDefault()
         const btn = modal.querySelector('#btnSaveSchedule')
-        const campoSel = modal.querySelector('#campoSelect')
-        campoSel.disabled = false // Asegurar que FormData lo incluya
         const fd = new FormData(e.target)
+        const sedeId = fd.get('sede_id')
         
         btn.disabled = true; btn.innerText = 'GUARDANDO...'
         
-        const dataToUpdate = {
-            fecha_hora: fd.get('fecha_hora') ? new Date(fd.get('fecha_hora')).toISOString() : null,
-            campo_id: campoSel.value || null,
-            arbitro_id: fd.get('arbitro_id') || null,
-            notas: fd.get('notas')
-        }
+        try {
+            let campoId = null
+            if (sedeId) {
+                // Obtener o crear campo por defecto para simplificar (Problema 3)
+                const { data: campos } = await supabase.from('campos').select('id').eq('sede_id', sedeId).limit(1)
+                if (campos && campos.length > 0) {
+                    campoId = campos[0].id
+                } else {
+                    const { data: newCampo } = await supabase.from('campos').insert([{ sede_id: sedeId, nombre: 'Cancha Principal' }]).select().single()
+                    campoId = newCampo.id
+                }
+            }
 
-        const { error } = await supabase.from('partidos').update(dataToUpdate).eq('id', matchId)
-        
-        if (error) {
-            alert('Error al guardar: ' + error.message)
+            const dataToUpdate = {
+                fecha_hora: fd.get('fecha_hora') ? new Date(fd.get('fecha_hora')).toISOString() : null,
+                campo_id: campoId,
+                arbitro_id: fd.get('arbitro_id') || null,
+                notas: fd.get('notas')
+            }
+
+            const { error } = await supabase.from('partidos').update(dataToUpdate).eq('id', matchId)
+            if (error) throw error
+            
+            modal.remove()
+            renderTabContent()
+        } catch (err) {
+            alert('Error al guardar: ' + err.message)
             btn.disabled = false; btn.innerText = 'GUARDAR PROGRAMACIÓN'
-            return
         }
-        
-        modal.remove()
-        renderTabContent()
     }
 
     const closeModal = () => modal.remove()
@@ -1326,43 +1306,115 @@ export const renderTournamentDetail = async (container, tournamentId) => {
     window.addEventListener('keydown', escHandler)
   }
 
-  const renderInfra = async (el) => {
+  const renderEstadios = async (el) => {
     el.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="card h-fit">
-                <h3 class="font-black mb-6 flex items-center gap-3"><span class="w-2 h-2 bg-indigo-500 rounded-full"></span>Sedes</h3>
-                <form id="sedeForm" class="flex gap-2 mb-6">
-                    <input type="text" id="sedeName" placeholder="Nueva sede" class="form-input text-xs" required>
-                    <button class="btn-primary py-2 px-4 shadow-none">+</button>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="card lg:col-span-1 border-slate-800 h-fit">
+                <h3 class="text-xl font-black italic uppercase italic tracking-tighter mb-8">🏟️ Nuevo Estadio</h3>
+                <form id="sedeForm" class="space-y-6">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Nombre del Estadio *</label>
+                        <input type="text" id="sedeName" placeholder="Ej: Estadio Nacional" class="form-input text-xs" required>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Dirección / Ubicación</label>
+                        <input type="text" id="sedeDir" placeholder="Ej: Calle 123, Ciudad" class="form-input text-xs">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Capacidad Aproximada</label>
+                        <input type="number" id="sedeCap" placeholder="0" class="form-input text-xs">
+                    </div>
+                    <button class="btn-primary w-full py-4 text-xs font-black uppercase tracking-widest shadow-indigo-600/20">AGREGAR ESTADIO ➔</button>
                 </form>
-                <div id="sedeList" class="space-y-2"></div>
+
+                <div class="mt-12 pt-10 border-t border-white/5">
+                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6 italic">MIS ESTADIOS (${tournament.nombre})</h4>
+                    <div id="sedeList" class="space-y-3"></div>
+                </div>
             </div>
-            <div class="card h-fit">
-                <h3 class="font-black mb-6 flex items-center gap-3"><span class="w-2 h-2 bg-emerald-500 rounded-full"></span>Árbitros</h3>
-                <form id="refForm" class="flex gap-2 mb-6">
-                    <input type="text" id="refName" placeholder="Nombre completo" class="form-input text-xs" required>
-                    <button class="btn-primary py-2 px-4 shadow-none bg-emerald-600 border-none">+</button>
+
+            <div class="card lg:col-span-2 border-slate-800">
+                <h3 class="text-xl font-black italic uppercase italic tracking-tighter mb-8">⚽ Árbitros del Torneo</h3>
+                <form id="refForm" class="flex gap-4 mb-10 pb-10 border-b border-white/5">
+                    <div class="flex-1">
+                        <input type="text" id="refName" placeholder="Nombre completo del árbitro" class="form-input text-xs" required>
+                    </div>
+                    <button class="btn-primary px-8 py-3 bg-emerald-600 border-none text-[10px] font-black uppercase italic tracking-widest">AGREGAR +</button>
                 </form>
-                <div id="refList" class="space-y-2"></div>
+                <div id="refList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
             </div>
         </div>
     `
     const loadInfra = async () => {
-        const { data: sedes } = await supabase.from('sedes').select('*')
-        const { data: refs } = await supabase.from('arbitros').select('*')
-        document.getElementById('sedeList').innerHTML = sedes.map(s => `<div class="p-3 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white font-bold">${s.nombre}</div>`).join('')
-        document.getElementById('refList').innerHTML = refs.map(r => `<div class="p-3 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white font-bold">${r.nombre}</div>`).join('')
+        const { data: sedes } = await supabase.from('sedes').select('*').eq('torneo_id', tournamentId).order('nombre')
+        const { data: refs } = await supabase.from('arbitros').select('*').eq('torneo_id', tournamentId).order('nombre')
+        
+        document.getElementById('sedeList').innerHTML = sedes && sedes.length ? sedes.map(s => `
+            <div class="p-4 bg-slate-900 border border-white/5 rounded-2xl group relative overflow-hidden">
+                <div class="font-black italic text-xs uppercase text-white mb-1">${s.nombre}</div>
+                <div class="text-[9px] font-black text-indigo-400 uppercase tracking-widest">${s.direccion || 'Sin dirección'} ${s.capacidad ? ' • ' + s.capacidad + ' espectadores' : ''}</div>
+                <button class="absolute top-4 right-4 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity btn-del-sede" data-id="${s.id}">&times;</button>
+            </div>
+        `).join('') : '<p class="text-center py-6 text-[10px] text-slate-600 uppercase font-black italic">No hay estadios registrados.</p>'
+        
+        document.getElementById('refList').innerHTML = refs && refs.length ? refs.map(r => `
+            <div class="p-4 bg-slate-900 border border-white/5 rounded-2xl flex items-center justify-between group">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 text-xs">👨‍⚖️</div>
+                    <span class="font-black italic text-xs uppercase text-white">${r.nombre}</span>
+                </div>
+                <button class="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity btn-del-ref" data-id="${r.id}">&times;</button>
+            </div>
+        `).join('') : '<p class="col-span-full text-center py-6 text-[10px] text-slate-600 uppercase font-black italic">No hay árbitros registrados.</p>'
+
+        container.querySelectorAll('.btn-del-sede').forEach(btn => btn.onclick = async () => {
+            if(confirm('¿Eliminar estadio?')) {
+                await supabase.from('sedes').delete().eq('id', btn.dataset.id)
+                loadInfra()
+            }
+        })
+        container.querySelectorAll('.btn-del-ref').forEach(btn => btn.onclick = async () => {
+             if(confirm('¿Eliminar árbitro?')) {
+                await supabase.from('arbitros').delete().eq('id', btn.dataset.id)
+                loadInfra()
+            }
+        })
     }
+
     document.getElementById('sedeForm').onsubmit = async (e) => {
         e.preventDefault()
         const { data: { user } } = await supabase.auth.getUser()
-        await supabase.from('sedes').insert([{ user_id: user.id, nombre: document.getElementById('sedeName').value }])
-        loadInfra()
+        const nombre = document.getElementById('sedeName').value
+        const direccion = document.getElementById('sedeDir').value
+        const capacidad = document.getElementById('sedeCap').value
+
+        const { data: newSede, error } = await supabase.from('sedes').insert([{ 
+            user_id: user.id, 
+            torneo_id: tournamentId,
+            nombre: nombre,
+            direccion: direccion,
+            capacidad: capacidad ? parseInt(capacidad) : null
+        }]).select().single()
+        
+        if (!error && newSede) {
+            // Crear automáticamente un campo para mantener compatibilidad con el esquema (Problema 3)
+            await supabase.from('campos').insert([{ sede_id: newSede.id, nombre: 'Cancha Principal' }])
+            e.target.reset()
+            loadInfra()
+        } else {
+            alert(error.message)
+        }
     }
+
     document.getElementById('refForm').onsubmit = async (e) => {
         e.preventDefault()
         const { data: { user } } = await supabase.auth.getUser()
-        await supabase.from('arbitros').insert([{ user_id: user.id, nombre: document.getElementById('refName').value }])
+        await supabase.from('arbitros').insert([{ 
+            user_id: user.id, 
+            torneo_id: tournamentId, 
+            nombre: document.getElementById('refName').value 
+        }])
+        e.target.reset()
         loadInfra()
     }
     loadInfra()

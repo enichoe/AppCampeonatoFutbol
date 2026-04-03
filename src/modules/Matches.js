@@ -172,7 +172,7 @@ function renderCardPartido(m) {
   const esEnJuego    = m.estado === 'en_juego'
   const esFinalizado = m.estado === 'finalizado'
   const time = m.fecha_hora ? formatearFechaHora(m.fecha_hora) : '--:--'
-  const venue = m.campo || m.sede || m.escenario || m.venue || 'Sede TBD'
+  const location = m.campo?.sede?.nombre || m.sede?.nombre || 'Estadio TBD'
 
   return `
     <div class="partido-card card !p-6 border border-white/5 bg-slate-900/40 glass-hover transition-all duration-300"
@@ -185,7 +185,7 @@ function renderCardPartido(m) {
         <!-- Local -->
         <div class="flex flex-col items-center gap-3 flex-1 min-w-0">
           <div class="w-16 h-16 bg-slate-950 rounded-2xl p-3 border border-white/5 flex items-center justify-center">
-            <img src="${m.local?.escudo_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(m.local?.nombre || 'Team')}" class="w-full h-full object-contain" loading="lazy">
+            <img src="${m.local?.escudo_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(m.local?.nombre || 'T')}" class="w-full h-full object-contain" loading="lazy">
           </div>
           <span class="text-[10px] font-black text-white uppercase italic tracking-tighter text-center truncate w-full">${m.local?.nombre || 'TBD'}</span>
         </div>
@@ -214,7 +214,7 @@ function renderCardPartido(m) {
         <!-- Visitante -->
         <div class="flex flex-col items-center gap-3 flex-1 min-w-0">
           <div class="w-16 h-16 bg-slate-950 rounded-2xl p-3 border border-white/5 flex items-center justify-center">
-            <img src="${m.visitante?.escudo_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(m.visitante?.nombre || 'Team')}" class="w-full h-full object-contain" loading="lazy">
+            <img src="${m.visitante?.escudo_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(m.visitante?.nombre || 'T')}" class="w-full h-full object-contain" loading="lazy">
           </div>
           <span class="text-[10px] font-black text-white uppercase italic tracking-tighter text-center truncate w-full">${m.visitante?.nombre || 'TBD'}</span>
         </div>
@@ -226,7 +226,7 @@ function renderCardPartido(m) {
               class="text-xs font-medium px-3 py-1 rounded-full
                      ${esFinalizado ? 'bg-green-500 text-white' :
                        esEnJuego    ? 'bg-amber-500 text-white animate-pulse' :
-                                      'bg-slate-600 text-slate-300'}">
+                                       'bg-slate-600 text-slate-300'}">
           ${esFinalizado ? 'Finalizado' : esEnJuego ? 'En juego' : 'Pendiente'}
         </span>
       </div>
@@ -261,11 +261,13 @@ function renderCardPartido(m) {
 
       <!-- Footer Info -->
       <div class="mt-4 pt-4 flex items-center justify-center gap-3 text-[9px] font-bold text-slate-600 uppercase tracking-widest">
-          <div class="flex items-center gap-1"><svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>${venue}</div>
+          <div class="flex items-center gap-1">
+            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
+            ${location}
+          </div>
       </div>
     </div>
   `
-}
 
 export const renderMatches = async (container) => {
   container.innerHTML = `
@@ -286,7 +288,13 @@ export const renderMatches = async (container) => {
     const { data: { user } } = await supabase.auth.getUser()
     const { data, error } = await supabase
       .from('partidos')
-      .select('*, local:equipo_local_id(nombre, escudo_url), visitante:equipo_visitante_id(nombre, escudo_url), torneos!inner(id, user_id)')
+      .select(`
+        *,
+        local:equipo_local_id(nombre, escudo_url),
+        visitante:equipo_visitante_id(nombre, escudo_url),
+        campo:campos(id, nombre, sede:sedes(id, nombre)),
+        torneos!inner(id, user_id)
+      `)
       .eq('torneos.user_id', user.id)
       .order('fase', { ascending: true })
       .order('fecha_hora', { ascending: true })
