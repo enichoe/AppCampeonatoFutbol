@@ -31,18 +31,43 @@ export const renderStandings = async (container, torneoId) => {
 
         if (pErr) throw pErr
 
-        if (!posiciones || posiciones.length === 0) {
+        // 3. Obtener equipos
+        const { data: equipos, error: eqErr } = await supabase
+            .from('equipos')
+            .select('*')
+            .eq('torneo_id', torneoId)
+            .is('deleted_at', null)
+
+        if (eqErr) throw eqErr
+
+        let posicionesCompletas = posiciones || []
+        const enTabla = new Set(posicionesCompletas.map(x => x.equipo_id))
+        if(equipos) {
+            equipos.forEach(eq => {
+                if (!enTabla.has(eq.id)) {
+                    posicionesCompletas.push({
+                        equipo_id: eq.id,
+                        equipo_nombre: eq.nombre,
+                        equipo_escudo: eq.escudo_url,
+                        grupo_id: eq.grupo_id,
+                        pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, dg: 0, pts: 0
+                    })
+                }
+            })
+        }
+
+        if (!posicionesCompletas || posicionesCompletas.length === 0) {
             content.innerHTML = '<p class="text-slate-500 text-center py-20 uppercase font-black italic tracking-widest text-[10px]">No hay datos de posiciones registrados.</p>'
             return
         }
 
         if (!grupos || grupos.length === 0) {
             // Tabla única
-            content.innerHTML = renderTableHtml('Tabla General', posiciones)
+            content.innerHTML = renderTableHtml('Tabla General', posicionesCompletas)
         } else {
             // Una tabla por grupo
             content.innerHTML = grupos.map(grupo => {
-                const equiposGrupo = posiciones.filter(p => p.grupo_id === grupo.id)
+                const equiposGrupo = posicionesCompletas.filter(p => p.grupo_id === grupo.id)
                 return renderTableHtml(grupo.nombre, equiposGrupo)
             }).join('')
         }

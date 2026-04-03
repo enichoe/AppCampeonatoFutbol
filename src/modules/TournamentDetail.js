@@ -394,12 +394,26 @@ export const renderTournamentDetail = async (container, tournamentId) => {
         if (grupos && grupos.length > 0) {
             for(const g of grupos) {
                 const { data: t } = await supabase.from('vista_posiciones').select('*').eq('grupo_id', g.id).order('pts', { ascending: false }).order('dg', { ascending: false }).order('gf', { ascending: false })
-                tablesHtml += renderMiniTable(g.nombre, t)
+                
+                let rawTabla = t || []
+                const enTabla = new Set(rawTabla.map(x => x.equipo_id))
+                teams.filter(x => x.grupo_id === g.id).forEach(eq => {
+                    if (!enTabla.has(eq.id)) rawTabla.push({ equipo_id: eq.id, equipo_nombre: eq.nombre, escudo_url: eq.escudo_url, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, dg: 0, pts: 0 })
+                })
+
+                tablesHtml += renderMiniTable(g.nombre, rawTabla)
             }
         } else {
             // Caso sin grupos (Liga)
             const { data: t } = await supabase.from('vista_posiciones').select('*').eq('torneo_id', tournamentId).order('pts', { ascending: false }).order('dg', { ascending: false }).order('gf', { ascending: false })
-            tablesHtml += renderMiniTable('Tabla General', t)
+            
+            let rawTabla = t || []
+            const enTabla = new Set(rawTabla.map(x => x.equipo_id))
+            teams.forEach(eq => {
+                if (!enTabla.has(eq.id)) rawTabla.push({ equipo_id: eq.id, equipo_nombre: eq.nombre, escudo_url: eq.escudo_url, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, dg: 0, pts: 0 })
+            })
+
+            tablesHtml += renderMiniTable('Tabla General', rawTabla)
         }
 
         if (el.querySelector('#mini-tables')) {

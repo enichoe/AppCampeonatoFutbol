@@ -32,10 +32,24 @@ export const renderPublicTournament = async (container, params) => {
         ])
 
         grupos = g || []
-        tabla = tab || []
         partidos = p || []
         equipos = eq || []
         jugadores = j || []
+
+        let rawTabla = tab || []
+        const enTabla = new Set(rawTabla.map(x => x.equipo_id))
+        equipos.forEach(eq => {
+            if (!enTabla.has(eq.id)) {
+                rawTabla.push({
+                    equipo_id: eq.id,
+                    equipo_nombre: eq.nombre,
+                    escudo_url: eq.escudo_url,
+                    grupo_id: eq.grupo_id,
+                    pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, dg: 0, pts: 0
+                })
+            }
+        })
+        tabla = rawTabla
 
         // DIAGNÓSTICO: Inspección de URLs
         console.group('FIFA App - Image Diagnostics')
