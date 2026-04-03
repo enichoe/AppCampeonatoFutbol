@@ -1,6 +1,62 @@
 import { supabase } from '../services/supabase.js'
 import { generateSlug } from '../utils/tournamentEngine.js'
 
+/**
+ * Finaliza un torneo y guarda la foto del campeón
+ */
+export async function finalizarTorneo(torneoId, equipoCampeonId, fotoUrl) {
+  const { error } = await supabase
+    .from('torneos')
+    .update({
+      estado: 'finalizado',
+      finalizado_at: new Date().toISOString(),
+      campeon_equipo_id: equipoCampeonId ?? null,
+      foto_campeon_url:  fotoUrl ?? null
+    })
+    .eq('id', torneoId)
+
+  if (error) {
+    console.error('Error al finalizar torneo:', error.message)
+    mostrarToast('Error al finalizar el torneo: ' + error.message, 'error')
+    return false
+  }
+
+  mostrarToast('Torneo finalizado correctamente', 'success')
+  return true
+}
+
+/**
+ * Sube la foto del campeón al Storage
+ */
+export async function subirFotoCampeon(torneoId, archivo) {
+  const ext      = archivo.name.split('.').pop()
+  const path     = `campeones/${torneoId}.${ext}`
+
+  const { error: uploadError } = await supabase.storage
+    .from('torneos')         // nombre del bucket
+    .upload(path, archivo, { upsert: true })
+
+  if (uploadError) {
+    mostrarToast('Error al subir la foto: ' + uploadError.message, 'error')
+    return null
+  }
+
+  const { data } = supabase.storage
+    .from('torneos')
+    .getPublicUrl(path)
+
+  return data.publicUrl
+}
+
+/**
+ * Muestra una notificación rápida
+ */
+function mostrarToast(mensaje, tipo = 'info') {
+    // Reutilizamos la función de Matches o implementamos una básica si no está disponible globalmente
+    if (window.mostrarToast) return window.mostrarToast(mensaje, tipo)
+    alert(mensaje)
+}
+
 export const renderTournaments = async (container) => {
   container.innerHTML = `
      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">

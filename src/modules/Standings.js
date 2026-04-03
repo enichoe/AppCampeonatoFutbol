@@ -2,7 +2,7 @@ import { supabase } from '../services/supabase.js'
 
 export const renderStandings = async (container, torneoId) => {
   container.innerHTML = `
-    <div id="standingsContent" class="space-y-12">
+    <div id="standingsContent" class="space-y-12 fade-in">
         <div class="flex items-center justify-center py-20">
             <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-indigo-500"></div>
         </div>
@@ -22,18 +22,7 @@ export const renderStandings = async (container, torneoId) => {
 
         if (gErr) throw gErr
 
-        if (!grupos || grupos.length === 0) {
-            // Si no hay grupos, mostramos una tabla única del torneo completo (ej: Ligas)
-            const { data: posBase, error: pbErr } = await supabase.from('vista_posiciones').select('*').eq('torneo_id', torneoId)
-            if (!posBase || posBase.length === 0) {
-                content.innerHTML = '<p class="text-slate-500 text-center py-20 uppercase font-black italic tracking-widest text-[11px]">No hay equipos en este torneo.</p>'
-            } else {
-                content.innerHTML = renderTableHtml('Torneo', posBase)
-            }
-            return
-        }
-
-        // 2. Obtener posiciones de la nueva VIEW
+        // 2. Obtener posiciones de la VIEW (filtra fase='grupos')
         const { data: posiciones, error: pErr } = await supabase
             .from('vista_posiciones')
             .select('*')
@@ -41,21 +30,33 @@ export const renderStandings = async (container, torneoId) => {
 
         if (pErr) throw pErr
 
-        // 3. Renderizar una tabla por cada grupo
-        content.innerHTML = grupos.map(grupo => {
-            const groupRows = posiciones.filter(p => p.grupo_id === grupo.id)
-            return renderTableHtml(grupo.nombre, groupRows)
-        }).join('')
+        if (!posiciones || posiciones.length === 0) {
+            content.innerHTML = '<p class="text-slate-500 text-center py-20 uppercase font-black italic tracking-widest text-[10px]">No hay datos de posiciones registrados.</p>'
+            return
+        }
+
+        if (!grupos || grupos.length === 0) {
+            // Tabla única
+            content.innerHTML = renderTableHtml('Tabla General', posiciones)
+        } else {
+            // Una tabla por grupo
+            content.innerHTML = grupos.map(grupo => {
+                const equiposGrupo = posiciones.filter(p => p.grupo_id === grupo.id)
+                return renderTableHtml(grupo.nombre, equiposGrupo)
+            }).join('')
+        }
 
     } catch (err) {
         console.error(err)
-        content.innerHTML = `<p class="text-red-500 text-center py-20 font-black uppercase text-[10px]">Error al cargar posiciones: ${err.message}</p>`
+        content.innerHTML = `<p class="text-rose-500 text-center py-20 font-black uppercase text-[10px]">Error: ${err.message}</p>`
     }
   }
 
-  function renderTableHtml(titulo, groupRows) {
+  function renderTableHtml(titulo, rows) {
+      if (rows.length === 0) return ''
+      
       return `
-        <div class="space-y-6 fade-in">
+        <div class="space-y-6">
             <div class="flex items-center gap-4 px-2">
                 <h4 class="text-xs font-black uppercase text-indigo-500 italic tracking-[0.2em]">${titulo}</h4>
                 <div class="flex-1 h-px bg-white/5"></div>
@@ -76,7 +77,7 @@ export const renderStandings = async (container, torneoId) => {
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-white/5">
-                        ${groupRows.sort((a,b) => b.pts - a.pts || b.dg - a.dg).map((row, index) => `
+                        ${rows.sort((a,b) => b.pts - a.pts || b.dg - a.dg || b.gf - a.gf).map((row, index) => `
                             <tr class="hover:bg-white/3 transition-colors group">
                                 <td class="py-5 px-6">
                                     <span class="text-xs font-black ${index < 2 ? 'text-indigo-400' : 'text-slate-600'}">${index + 1}</span>
@@ -84,7 +85,7 @@ export const renderStandings = async (container, torneoId) => {
                                 <td class="py-5 px-4">
                                     <div class="flex items-center gap-4">
                                         <div class="w-8 h-8 rounded-lg overflow-hidden bg-slate-950 p-1.5 border border-white/5 flex items-center justify-center">
-                                            <img src="${row.escudo_url || ('https://ui-avatars.com/api/?name='+encodeURIComponent(row.equipo_nombre))}" class="w-full h-full object-contain" loading="lazy">
+                                            <img src="${row.equipo_escudo || ('https://ui-avatars.com/api/?name='+encodeURIComponent(row.equipo_nombre))}" class="w-full h-full object-contain" loading="lazy">
                                         </div>
                                         <span class="font-black text-white italic uppercase tracking-tighter text-sm">${row.equipo_nombre}</span>
                                     </div>
@@ -106,12 +107,10 @@ export const renderStandings = async (container, torneoId) => {
       `
   }
 
-  // Escuchar actualizaciones de resultados
+  // Listener para recarga quirúrgica
   const refreshHandler = () => loadStandings()
   window.addEventListener('resultado-guardado', refreshHandler)
 
-  // Cleanup al desmontar (si hubiera router)
-  // window.removeEventListener('resultado-guardado', refreshHandler)
-
   loadStandings()
 }
+
