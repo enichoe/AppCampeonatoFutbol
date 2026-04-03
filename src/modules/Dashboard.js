@@ -1,5 +1,4 @@
 import { signOut } from '../services/supabase.js'
-import { navigate } from '../main.js'
 import { renderTournaments } from './Tournaments.js'
 import { renderTeams } from './Teams.js'
 import { renderMatches } from './Matches.js'

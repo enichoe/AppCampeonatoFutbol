@@ -1,5 +1,4 @@
 import { supabase } from '../services/supabase.js'
-import { state } from '../main.js'
 import { parsearFechaLocal, formatearFecha, formatearFechaHora } from '../utils/fechas.js'
 import { renderEscudo, renderFotoJugador } from '../utils/storage.js'
 
