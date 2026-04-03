@@ -70,10 +70,9 @@ export const renderLanding = (container) => {
           </div>
 
           <h1 class="text-4xl sm:text-5xl md:text-8xl font-black italic tracking-tighter text-slate-50 uppercase leading-[0.9] mb-8">
-            Deja el excel y <br/>
-            <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-cyan-400">organiza tu torneo</span> <br/>
-            como un profesional
-          </h1>
+    Crea tu torneo en segundos <br/>
+    <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-cyan-400">y controla todo desde tu celular</span>
+</h1>
           
           <p class="max-w-2xl mx-auto text-slate-400 text-base md:text-xl font-medium leading-relaxed mb-12 uppercase tracking-tight">
              Fútbol App automatiza tu fixture, calcula tablas de posiciones y permite que los jugadores sigan los resultados por WhatsApp en tiempo real.
