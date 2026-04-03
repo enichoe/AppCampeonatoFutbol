@@ -150,9 +150,16 @@ export const renderPublicTournament = async (container, params) => {
             </div>` : ''}
 
             <div class="m-fifa-footer">
-                <div class="m-fifa-venue">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"></path></svg>
-                    <span>${m.campo?.nombre || 'Sede por confirmar'}</span>
+                <div class="m-fifa-venue-wrap">
+                    <div class="m-fifa-info-item">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"></path></svg>
+                        <span>${m.campo?.sede?.nombre ? `${m.campo.sede.nombre} - ${m.campo.nombre}` : (m.campo?.nombre || 'Sede por confirmar')}</span>
+                    </div>
+                    ${m.arbitro?.nombre ? `
+                    <div class="m-fifa-info-item">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg>
+                        <span>Árbitro: ${m.arbitro.nombre}</span>
+                    </div>` : ''}
                 </div>
             </div>
         </div>`
@@ -465,12 +472,18 @@ export const renderPublicTournament = async (container, params) => {
 
         .m-fifa-footer {
             margin-top: 20px;
-            display: flex;
-            justify-content: center;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-base);
             position: relative;
             z-index: 10;
         }
-        .m-fifa-venue {
+        .m-fifa-venue-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+        }
+        .m-fifa-info-item {
             display: flex;
             align-items: center;
             gap: 6px;
@@ -479,10 +492,11 @@ export const renderPublicTournament = async (container, params) => {
             text-transform: uppercase;
             color: var(--text-muted);
             background: rgba(0,0,0,0.2);
-            padding: 5px 15px;
-            border-radius: 20px;
+            padding: 6px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-base);
         }
-        .m-fifa-venue svg { width: 12px; height: 12px; color: var(--cyan); }
+        .m-fifa-info-item svg { width: 12px; height: 12px; color: var(--cyan); }
 
         /* SECCIONES TITLES */
         .ea-section-header {
