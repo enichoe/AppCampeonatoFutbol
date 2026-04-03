@@ -1283,7 +1283,8 @@ export const renderTournamentDetail = async (container, tournamentId) => {
                 if (campos && campos.length > 0) {
                     campoId = campos[0].id
                 } else {
-                    const res = await supabase.from('campos').insert([{ sede_id: sedeId, nombre: 'Cancha Principal' }]).select().single()
+                    const { data: { user } } = await supabase.auth.getUser()
+                    const res = await supabase.from('campos').insert([{ sede_id: sedeId, nombre: 'Cancha Principal', user_id: user.id }]).select().single()
                     if (res.error) throw res.error
                     campoId = res.data?.id
                 }
@@ -1413,7 +1414,7 @@ export const renderTournamentDetail = async (container, tournamentId) => {
         
         if (!error && newSede) {
             // Crear automáticamente un campo para mantener compatibilidad con el esquema (Problema 3)
-            await supabase.from('campos').insert([{ sede_id: newSede.id, nombre: 'Cancha Principal' }])
+            await supabase.from('campos').insert([{ sede_id: newSede.id, nombre: 'Cancha Principal', user_id: user.id }])
             e.target.reset()
             loadInfra()
         } else {
