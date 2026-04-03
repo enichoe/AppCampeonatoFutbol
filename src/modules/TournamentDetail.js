@@ -40,22 +40,22 @@ export const renderTournamentDetail = async (container, tournamentId) => {
     const publicUrl = `${window.location.origin}/torneo/${tournament.slug}`
 
     container.innerHTML = `
-      <div class="space-y-10 fade-in pb-10">
+      <div class="space-y-6 md:space-y-10 fade-in pb-10">
           <!-- BREADCRUMBS & TITLE -->
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div>
-                  <nav class="flex gap-2 mb-3 text-[9px] font-black uppercase text-slate-600 tracking-[0.2em]">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div class="max-w-full overflow-hidden">
+                  <nav class="flex gap-2 mb-3 text-[8px] md:text-[9px] font-black uppercase text-slate-600 tracking-[0.2em]">
                     <button id="navBack" class="hover:text-indigo-400 transition-colors">Torneos</button>
                     <span class="opacity-20 text-white">/</span>
-                    <span class="text-indigo-400 italic">Panel de Control</span>
+                    <span class="text-indigo-400 italic">Panel</span>
                   </nav>
-                  <h1 class="text-4xl font-black text-white italic tracking-tighter uppercase leading-none truncate">${tournament.nombre}</h1>
+                  <h1 class="text-2xl md:text-4xl font-[1000] text-white italic tracking-tighter uppercase leading-tight truncate px-0.5">${tournament.nombre}</h1>
               </div>
               <div class="flex items-center gap-3">
-                  <div class="p-4 bg-slate-900 rounded-[1.5rem] border border-white/5 flex-grow md:flex-grow-0">
-                     <span class="text-[9px] font-black text-slate-500 block uppercase tracking-widest mb-1.5">Enlace Público</span>
+                  <div class="p-3 md:p-4 bg-slate-900 rounded-2xl md:rounded-[1.5rem] border border-white/5 flex-grow md:flex-grow-0">
+                     <span class="text-[8px] font-black text-slate-500 block uppercase tracking-widest mb-1">Link Público</span>
                      <div class="flex items-center gap-3">
-                        <a href="${publicUrl}" target="_blank" class="text-xs text-indigo-400 font-black hover:underline tracking-tight">Ver Vista en Vivo</a>
+                        <a href="${publicUrl}" target="_blank" class="text-[10px] md:text-xs text-indigo-400 font-black hover:underline tracking-tight truncate max-w-[150px] sm:max-w-none">Ver Vista en Vivo</a>
                         <button id="btnCopyLink" class="p-2 bg-white/5 rounded-lg hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg></button>
                      </div>
                   </div>

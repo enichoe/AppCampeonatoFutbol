@@ -78,34 +78,34 @@ function mostrarToast(mensaje, tipo = 'info') {
 
 export const renderTournaments = async (container) => {
   container.innerHTML = `
-     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 md:mb-10">
         <div>
-          <h2 class="text-4xl font-black text-white italic tracking-tighter uppercase">Panel de Control</h2>
-          <p class="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Gestiona y automatiza tus campeonatos</p>
+          <h2 class="text-2xl md:text-4xl font-black text-white italic tracking-tighter uppercase leading-none">Panel de Control</h2>
+          <p class="text-slate-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-2">Gestiona y automatiza tus campeonatos</p>
         </div>
-        <button id="btnCreateTournament" class="btn-primary !h-14 !px-10 shadow-indigo-600/40 hover:scale-105 transition-transform group">
+        <button id="btnCreateTournament" class="btn-primary !h-14 px-6 md:px-10 shadow-indigo-600/40 hover:scale-105 transition-transform group w-full md:w-auto flex items-center justify-center">
           <svg class="w-5 h-5 group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-          <span class="uppercase tracking-[0.2em] text-[10px] font-black ml-2">Nuevo Torneo</span>
+          <span class="uppercase tracking-[0.2em] text-[9px] font-black ml-2 whitespace-nowrap">Nuevo Torneo</span>
         </button>
      </div>
 
     <!-- Stats Row -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-        <div class="p-6 bg-slate-900/50 border border-white/5 rounded-3xl">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-12">
+        <div class="p-4 md:p-6 bg-slate-900/50 border border-white/5 rounded-[2rem]">
             <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Ligas</p>
-            <p class="text-3xl font-black italic text-white" id="statTotal">--</p>
+            <p class="text-2xl md:text-3xl font-black italic text-white" id="statTotal">--</p>
         </div>
-        <div class="p-6 bg-slate-900/50 border border-white/5 rounded-3xl">
+        <div class="p-4 md:p-6 bg-slate-900/50 border border-white/5 rounded-[2rem]">
             <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Equipos</p>
-            <p class="text-3xl font-black italic text-white" id="statTeams">--</p>
+            <p class="text-2xl md:text-3xl font-black italic text-white" id="statTeams">--</p>
         </div>
-        <div class="p-6 bg-slate-900/50 border border-indigo-500/20 rounded-3xl bg-indigo-500/5">
-            <p class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Plan Actual</p>
-            <p class="text-xl font-black italic text-white uppercase tracking-tighter mt-2">Free Edition</p>
+        <div class="p-4 md:p-6 bg-slate-900/50 border border-indigo-500/20 rounded-[2rem] bg-indigo-500/5">
+            <p class="text-[8px] md:text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Plan Actual</p>
+            <p class="text-xs md:text-xl font-black italic text-white uppercase tracking-tighter sm:mt-2">Free Edition</p>
         </div>
-        <div class="p-6 bg-slate-900/50 border border-white/5 rounded-3xl">
+        <div class="p-4 md:p-6 bg-slate-900/50 border border-white/5 rounded-[2rem]">
             <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Uptime</p>
-            <p class="text-xl font-black italic text-emerald-400 uppercase tracking-tighter mt-2">Sistema OK</p>
+            <p class="text-xs md:text-xl font-black italic text-emerald-400 uppercase tracking-tighter sm:mt-2">Sistema OK</p>
         </div>
     </div>
 

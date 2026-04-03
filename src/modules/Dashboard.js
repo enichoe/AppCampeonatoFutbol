@@ -66,7 +66,7 @@ export const renderDashboard = (container, view, params) => {
             <button id="toggleSidebar" class="md:hidden p-2.5 bg-slate-900 rounded-xl border border-white/5 text-slate-400">
                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
             </button>
-            <h2 class="text-xs font-black text-slate-500 uppercase tracking-[0.2em]" id="currentViewTitle">${view.replace('_', ' ')}</h2>
+            <h2 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] truncate max-w-[150px] sm:max-w-none" id="currentViewTitle">${view.replace('_', ' ')}</h2>
           </div>
           
           <div class="flex items-center gap-4">
@@ -81,7 +81,7 @@ export const renderDashboard = (container, view, params) => {
         </header>
 
         <!-- Área de Renderizado -->
-        <div id="dashboardContent" class="p-5 md:p-10 fade-in max-w-7xl mx-auto">
+        <div id="dashboardContent" class="p-4 sm:p-6 md:p-10 fade-in max-w-7xl mx-auto overflow-x-hidden">
            <!-- El contenido dinámico se inyecta aquí -->
         </div>
       </main>
