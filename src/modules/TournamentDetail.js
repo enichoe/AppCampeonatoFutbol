@@ -1406,8 +1406,7 @@ export const renderTournamentDetail = async (container, tournamentId) => {
             user_id: user.id, 
             torneo_id: tournamentId,
             nombre: nombre,
-            direccion: direccion,
-            capacidad: capacidad ? parseInt(capacidad) : null
+            direccion: direccion
         }]).select().single()
         
         if (!error && newSede) {
