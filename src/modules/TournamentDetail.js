@@ -1283,8 +1283,9 @@ export const renderTournamentDetail = async (container, tournamentId) => {
                 if (campos && campos.length > 0) {
                     campoId = campos[0].id
                 } else {
-                    const { data: newCampo } = await supabase.from('campos').insert([{ sede_id: sedeId, nombre: 'Cancha Principal' }]).select().single()
-                    campoId = newCampo.id
+                    const res = await supabase.from('campos').insert([{ sede_id: sedeId, nombre: 'Cancha Principal' }]).select().single()
+                    if (res.error) throw res.error
+                    campoId = res.data?.id
                 }
             }
 
@@ -1406,7 +1407,8 @@ export const renderTournamentDetail = async (container, tournamentId) => {
             user_id: user.id, 
             torneo_id: tournamentId,
             nombre: nombre,
-            direccion: direccion
+            direccion: direccion,
+            capacidad: capacidad ? parseInt(capacidad) : null
         }]).select().single()
         
         if (!error && newSede) {
