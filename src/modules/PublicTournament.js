@@ -1,4 +1,5 @@
 import { supabase } from '../services/supabase.js'
+import { state } from '../main.js'
 import { parsearFechaLocal, formatearFecha, formatearFechaHora } from '../utils/fechas.js'
 import { renderEscudo, renderFotoJugador } from '../utils/storage.js'
 
@@ -50,6 +51,26 @@ export const renderPublicTournament = async (container, params) => {
                 .in('partido_id', partidoIds)
             eventos = evData || []
         }
+
+        // Suscripción Realtime para actualizaciones automáticas
+        const channel = supabase.channel('public_tournament_realtime')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'partidos', filter: `torneo_id=eq.${torneo.id}` }, () => {
+                console.log('Realtime: Cambio en partidos detectado. Recargando...');
+                renderPublicTournament(container, params);
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'eventos_partido' }, () => {
+                console.log('Realtime: Cambio en eventos detectado. Recargando...');
+                renderPublicTournament(container, params);
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'equipos', filter: `torneo_id=eq.${torneo.id}` }, () => {
+                console.log('Realtime: Cambio en equipos detectado. Recargando...');
+                renderPublicTournament(container, params);
+            })
+            .subscribe()
+
+        // Limpiar suscripción al cambiar de vista (si es posible en este router)
+        window.currentTournamentChannel = channel;
+
     } catch (err) {
         console.error('Error cargando datos públicos del torneo', err)
         container.innerHTML = `<div class="p-8 text-center text-red-500">Error cargando datos del torneo.</div>`
@@ -581,16 +602,16 @@ export const renderPublicTournament = async (container, params) => {
 
         <nav class="ea-nav">
             <div class="ea-segmented">
-                <button class="ea-nav-btn active" data-tab="posiciones">Clasificación</button>
-                <button class="ea-nav-btn" data-tab="partidos">Partidos</button>
-                <button class="ea-nav-btn" data-tab="equipos">Clubes</button>
-                <button class="ea-nav-btn" data-tab="estadisticas">Líderes</button>
+                <button class="ea-nav-btn ${!state.activeTab || state.activeTab === 'posiciones' ? 'active' : ''}" data-tab="posiciones">Clasificación</button>
+                <button class="ea-nav-btn ${state.activeTab === 'partidos' ? 'active' : ''}" data-tab="partidos">Partidos</button>
+                <button class="ea-nav-btn ${state.activeTab === 'equipos' ? 'active' : ''}" data-tab="equipos">Clubes</button>
+                <button class="ea-nav-btn ${state.activeTab === 'estadisticas' ? 'active' : ''}" data-tab="estadisticas">Líderes</button>
             </div>
         </nav>
 
         <main class="flex-1 pb-20">
             <!-- SECCIÓN POSICIONES -->
-            <section id="section-posiciones" class="tab-content animate-fade px-4">
+            <section id="section-posiciones" class="tab-content animate-fade px-4 ${state.activeTab && state.activeTab !== 'posiciones' ? 'hidden' : ''}">
                 <div class="ea-standings-container">
                     ${renderPosicionesEA(grupos, tabla)}
                 </div>
@@ -608,12 +629,12 @@ export const renderPublicTournament = async (container, params) => {
             </section>
 
             <!-- SECCIÓN PARTIDOS -->
-            <section id="section-partidos" class="tab-content hidden animate-fade">
+            <section id="section-partidos" class="tab-content animate-fade ${state.activeTab !== 'partidos' ? 'hidden' : ''}">
                 ${renderPartidosProfessionalFIFA(partidos)}
             </section>
 
             <!-- SECCIÓN CLUBES -->
-            <section id="section-equipos" class="tab-content hidden px-4 max-w-lg mx-auto">
+            <section id="section-equipos" class="tab-content px-4 max-w-lg mx-auto ${state.activeTab !== 'equipos' ? 'hidden' : ''}">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     ${equipos.map(e => `
                         <div class="ea-club-card animate-fade">
@@ -628,7 +649,7 @@ export const renderPublicTournament = async (container, params) => {
             </section>
 
             <!-- SECCIÓN STATS -->
-            <section id="section-estadisticas" class="tab-content hidden px-4 max-w-lg mx-auto">
+            <section id="section-estadisticas" class="tab-content px-4 max-w-lg mx-auto ${state.activeTab !== 'estadisticas' ? 'hidden' : ''}">
                 ${renderStatsFIFA(eventos, jugadores)}
             </section>
         </main>
@@ -815,6 +836,7 @@ export const renderPublicTournament = async (container, params) => {
     const setupEvents = () => {
         container.querySelectorAll('.ea-nav-btn').forEach(btn => {
             btn.onclick = () => {
+                state.activeTab = btn.dataset.tab // Guardar pestaña actual en el state global de la app
                 container.querySelectorAll('.ea-nav-btn').forEach(b => b.classList.remove('active'))
                 btn.classList.add('active')
                 container.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'))
